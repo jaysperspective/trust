@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3055",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
