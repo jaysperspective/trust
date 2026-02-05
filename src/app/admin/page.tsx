@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatRelativeTime } from '@/lib/utils'
+import { AutopostButton } from './autopost-button'
 
 async function getStats() {
   try {
@@ -75,12 +76,7 @@ export default async function AdminDashboard() {
             <Link href="/admin/roundtables/new">
               <Button>New Roundtable</Button>
             </Link>
-            <form action="/api/cron/autopost" method="POST">
-              <input type="hidden" name="secret" value={process.env.CRON_SECRET || ''} />
-              <Button variant="secondary" type="submit">
-                Trigger Autopost
-              </Button>
-            </form>
+            <AutopostButton />
           </div>
         </div>
 

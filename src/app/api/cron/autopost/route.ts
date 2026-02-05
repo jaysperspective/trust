@@ -6,10 +6,8 @@ import { TaskType, TaskStatus } from '@prisma/client'
 const POSTS_PER_TRIGGER = 3
 
 export async function POST(request: NextRequest) {
-  // Verify either cron secret or admin session
+  // Verify via cron secret header or admin session cookie
   const cronSecret = request.headers.get('x-cron-secret')
-    || (await request.formData().then(f => f.get('secret') as string).catch(() => null))
-
   const isAuthorized = verifyCronSecret(cronSecret) || await isAdminAuthenticated()
 
   if (!isAuthorized) {
