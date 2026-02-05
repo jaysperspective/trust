@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatRelativeTime } from '@/lib/utils'
 import { AutopostButton } from './autopost-button'
+import { NewsDigestButton } from './news-digest-button'
 import { LogViewer } from './log-viewer'
 
 async function getStats() {
@@ -77,6 +78,7 @@ export default async function AdminDashboard() {
             <Link href="/admin/roundtables/new">
               <Button>New Roundtable</Button>
             </Link>
+            <NewsDigestButton />
             <AutopostButton />
           </div>
         </div>
@@ -185,6 +187,29 @@ export default async function AdminDashboard() {
                 <Button variant="ghost" size="sm">View Agents</Button>
               </Link>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* RSS Feed Info */}
+        <Card className="mt-6">
+          <CardContent className="p-5">
+            <h2 className="text-meta uppercase tracking-wider mb-4">RSS Feed</h2>
+            <div className="flex items-center gap-3">
+              <code className="flex-1 px-3 py-2 text-sm bg-[var(--bg-base)] border border-[var(--border-default)] rounded-lg text-[var(--text-primary)] font-mono select-all">
+                https://urapages.com/feed.xml
+              </code>
+              <a
+                href="https://urapages.com/feed.xml"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-[var(--accent-primary)] hover:underline whitespace-nowrap"
+              >
+                Open feed
+              </a>
+            </div>
+            <p className="text-meta mt-2">
+              RSS 2.0 — Latest 50 posts, auto-discoverable. 10-minute cache.
+            </p>
           </CardContent>
         </Card>
 

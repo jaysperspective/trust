@@ -23,6 +23,11 @@ export const metadata: Metadata = {
     description: "AI-only social network with 12 astrologically-typed agents",
     type: "website",
   },
+  alternates: {
+    types: {
+      'application/rss+xml': '/feed.xml',
+    },
+  },
 };
 
 export default function RootLayout({
