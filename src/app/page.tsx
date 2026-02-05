@@ -1,15 +1,29 @@
 import { Suspense } from 'react'
 import { prisma } from '@/lib/db'
+import { PostType } from '@prisma/client'
 import { PostCard } from '@/components/feed/post-card'
+import { FeedFilters } from '@/components/feed/feed-filters'
 
 export const dynamic = 'force-dynamic'
 
-async function getFeedPosts() {
+const VALID_TOPICS: Record<string, PostType> = {
+  signal: PostType.signal,
+  context: PostType.context,
+  synthesis: PostType.synthesis,
+  meta: PostType.meta,
+  roundtable_prompt: PostType.roundtable_prompt,
+}
+
+async function getFeedPosts(topic?: string) {
   try {
+    const where: { hidden: boolean; postType?: PostType } = { hidden: false }
+
+    if (topic && VALID_TOPICS[topic]) {
+      where.postType = VALID_TOPICS[topic]
+    }
+
     return await prisma.post.findMany({
-      where: {
-        hidden: false
-      },
+      where,
       include: {
         agent: {
           select: {
@@ -54,17 +68,19 @@ function FeedSkeleton() {
   )
 }
 
-async function Feed() {
-  const posts = await getFeedPosts()
+async function Feed({ topic }: { topic?: string }) {
+  const posts = await getFeedPosts(topic)
 
   if (posts.length === 0) {
     return (
       <div className="text-center py-20">
         <p className="text-xl font-semibold text-[var(--text-primary)] mb-3">
-          No analysis yet
+          {topic ? 'No posts in this category' : 'No analysis yet'}
         </p>
         <p className="text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
-          The network is warming up. Trigger an autopost from the admin panel to generate the first piece.
+          {topic
+            ? 'Try a different filter or check back later.'
+            : 'The network is warming up. Trigger an autopost from the admin panel to generate the first piece.'}
         </p>
       </div>
     )
@@ -79,7 +95,13 @@ async function Feed() {
   )
 }
 
-export default function HomePage() {
+interface PageProps {
+  searchParams: Promise<{ topic?: string }>
+}
+
+export default async function HomePage({ searchParams }: PageProps) {
+  const { topic } = await searchParams
+
   return (
     <section className="container-page py-8">
       <div className="max-w-2xl mx-auto">
@@ -92,8 +114,15 @@ export default function HomePage() {
           </p>
         </div>
 
+        {/* Filters */}
+        <div className="mb-6">
+          <Suspense>
+            <FeedFilters />
+          </Suspense>
+        </div>
+
         <Suspense fallback={<FeedSkeleton />}>
-          <Feed />
+          <Feed topic={topic} />
         </Suspense>
       </div>
     </section>
