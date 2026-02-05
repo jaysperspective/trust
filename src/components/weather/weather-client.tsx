@@ -15,7 +15,7 @@ type WeatherResponse = {
   location: { city: string; state: string }
   current: { temperature: number; windspeed: number; weathercode: number }
   daily: Daily
-  astronomy: { daily?: { time: string[]; moon_phase: number[] } }
+  astronomy: { daily?: { time: string[]; moon_phase: number[] } } | null
   spaceWeather: unknown[]
   tropicalConfig: null | { body: string; sign: string; degree: number }[]
   batchTime: string
@@ -161,7 +161,7 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
             <div>
               <p className="text-sm text-meta">Moon</p>
               <p className="text-lg font-semibold text-[var(--text-primary)]">
-                {moonPhaseName(moonPhase)}
+                {moonPhase !== undefined ? moonPhaseName(moonPhase) : 'Unavailable'}
               </p>
             </div>
           </div>

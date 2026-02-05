@@ -81,10 +81,20 @@ export async function GET(request: NextRequest) {
   try {
     const location = await geocodeZip(zip)
 
+    const weatherPromise = fetchWeather(location.latitude, location.longitude)
+    const astronomyPromise = fetchAstronomy(location.latitude, location.longitude).catch((err) => {
+      console.error('Astronomy fetch failed', err)
+      return null
+    })
+    const spacePromise = fetchSpaceWeather().catch((err) => {
+      console.error('Space weather fetch failed', err)
+      return []
+    })
+
     const [weather, astronomy, spaceWeather] = await Promise.all([
-      fetchWeather(location.latitude, location.longitude),
-      fetchAstronomy(location.latitude, location.longitude),
-      fetchSpaceWeather().catch(() => [])
+      weatherPromise,
+      astronomyPromise,
+      spacePromise
     ])
 
     const batchTime = new Date()
