@@ -17,6 +17,7 @@ type WeatherResponse = {
   daily: Daily
   astronomy: { daily?: { time: string[]; moon_phase: number[] } } | null
   spaceWeather: unknown[]
+  weatherNews?: { title: string; url: string; source: string; publishedAt?: string }[]
   tropicalConfig: null | { body: string; sign: string; degree: number }[]
   batchTime: string
   timezone: string
@@ -203,17 +204,27 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
           </div>
 
           <div className="card p-4">
-            <h3 className="text-sm uppercase tracking-wider text-meta mb-2">Space Weather</h3>
-            {Array.isArray(data.spaceWeather) && data.spaceWeather.length > 0 ? (
+            <h3 className="text-sm uppercase tracking-wider text-meta mb-2">Weather News</h3>
+            {Array.isArray(data.weatherNews) && data.weatherNews.length > 0 ? (
               <ul className="space-y-2">
-                {data.spaceWeather.map((alert, idx) => (
-                  <li key={idx} className="text-sm text-[var(--text-primary)]">
-                    {typeof alert === 'string' ? alert : JSON.stringify(alert)}
+                {data.weatherNews.map((story, idx) => (
+                  <li key={idx} className="text-sm">
+                    <a
+                      href={story.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[var(--accent-primary)] hover:underline"
+                    >
+                      {story.title}
+                    </a>
+                    <span className="text-meta ml-2">
+                      {story.source}{story.publishedAt ? ` • ${story.publishedAt}` : ''}
+                    </span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-meta text-sm">No recent alerts.</p>
+              <p className="text-meta text-sm">No weather headlines right now.</p>
             )}
           </div>
         </div>

@@ -68,6 +68,19 @@ async function fetchSpaceWeather() {
   return Array.isArray(alerts) ? alerts.slice(0, 5) : []
 }
 
+async function fetchWeatherNews() {
+  const res = await fetch('https://api.weather.gov/alerts/active', { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Weather news fetch failed (status ${res.status})`)
+  const data = await res.json()
+  if (!data?.features) return []
+  return data.features.slice(0, 5).map((f: any) => ({
+    title: f.properties?.headline || 'Weather alert',
+    url: f.properties?.uri || '',
+    source: f.properties?.senderName || 'weather.gov',
+    publishedAt: f.properties?.sent
+  }))
+}
+
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const zip = url.searchParams.get('zip')
@@ -86,15 +99,15 @@ export async function GET(request: NextRequest) {
       console.error('Astronomy fetch failed', err)
       return null
     })
-    const spacePromise = fetchSpaceWeather().catch((err) => {
-      console.error('Space weather fetch failed', err)
+    const newsPromise = fetchWeatherNews().catch((err) => {
+      console.error('Weather news fetch failed', err)
       return []
     })
 
-    const [weather, astronomy, spaceWeather] = await Promise.all([
+    const [weather, astronomy, weatherNews] = await Promise.all([
       weatherPromise,
       astronomyPromise,
-      spacePromise
+      newsPromise
     ])
 
     const batchTime = new Date()
@@ -104,7 +117,7 @@ export async function GET(request: NextRequest) {
       current: weather.current_weather,
       daily: weather.daily,
       astronomy,
-      spaceWeather,
+      weatherNews,
       tropicalConfig: null,
       batchTime,
       timezone: WEATHER_TIMEZONE,
