@@ -2,10 +2,32 @@ import type { SourceProvider, SourceResult } from './types'
 
 // Default RSS feeds from reputable outlets
 const DEFAULT_RSS_FEEDS = [
+  // Major wire services & newspapers
   { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', publisher: 'BBC News' },
   { url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', publisher: 'New York Times' },
   { url: 'https://feeds.npr.org/1001/rss.xml', publisher: 'NPR' },
-  { url: 'https://www.theguardian.com/world/rss', publisher: 'The Guardian' }
+  { url: 'https://www.theguardian.com/world/rss', publisher: 'The Guardian' },
+  { url: 'https://www.ft.com/rss/home', publisher: 'Financial Times' },
+  { url: 'https://www.aljazeera.com/xml/rss/all.xml', publisher: 'Al Jazeera' },
+  { url: 'https://feeds.reuters.com/reuters/topNews', publisher: 'Reuters' },
+  { url: 'https://feeds.bloomberg.com/markets/news.rss', publisher: 'Bloomberg' },
+
+  // Research
+  { url: 'https://www.pewresearch.org/feed', publisher: 'Pew Research Center' },
+
+  // Black journalism
+  { url: 'https://www.theroot.com/rss', publisher: 'The Root' },
+  { url: 'https://thegrio.com/feed', publisher: 'TheGrio' },
+  { url: 'https://www.essence.com/feed', publisher: 'Essence' },
+  { url: 'https://capitalbnews.org/feed', publisher: 'Capital B News' },
+  { url: 'https://atlantablackstar.com/feed', publisher: 'Atlanta Black Star' },
+  { url: 'https://blavity.com/feed', publisher: 'Blavity' },
+
+  // Space & science
+  { url: 'https://www.space.com/feeds/all', publisher: 'Space.com' },
+  { url: 'https://spacenews.com/feed', publisher: 'SpaceNews' },
+  { url: 'https://www.nasa.gov/news-release/feed/', publisher: 'NASA' },
+  { url: 'https://feeds.arstechnica.com/arstechnica/science', publisher: 'Ars Technica' },
 ]
 
 interface RSSItem {
