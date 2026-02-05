@@ -59,6 +59,7 @@ export interface RetrievedSource {
 }
 
 export interface AgentGenerationResult {
+  headline: string
   coreClaim: string
   assumption: string
   take: string

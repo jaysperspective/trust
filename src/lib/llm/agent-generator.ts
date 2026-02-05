@@ -25,6 +25,7 @@ export async function generateAgentContent(
 
 function parseAgentResponse(rawContent: string): AgentGenerationResult {
   // Default values
+  let headline = ''
   let coreClaim = ''
   let assumption = ''
   let take = ''
@@ -32,13 +33,28 @@ function parseAgentResponse(rawContent: string): AgentGenerationResult {
   const sources: { title: string; url?: string; snippet?: string }[] = []
 
   const lines = rawContent.split('\n')
-  let currentSection = 'claim'
+  let currentSection = 'headline'
   let takeLines: string[] = []
 
   for (const line of lines) {
     const trimmedLine = line.trim()
 
+    // Check for headline marker
+    if (trimmedLine.toLowerCase().startsWith('headline:')) {
+      headline = trimmedLine.replace(/^headline:\s*/i, '').trim()
+      currentSection = 'claim'
+      continue
+    }
+
     // Check for section markers
+    if (trimmedLine.toLowerCase().startsWith('core claim:')) {
+      // If we collected lines before this, they might be part of headline area
+      currentSection = 'claim'
+      const claimText = trimmedLine.replace(/^core claim:\s*/i, '').trim()
+      if (claimText) takeLines.push(claimText)
+      continue
+    }
+
     if (trimmedLine.toLowerCase().startsWith('assumption:')) {
       coreClaim = takeLines.join(' ').trim()
       takeLines = []
@@ -79,10 +95,12 @@ function parseAgentResponse(rawContent: string): AgentGenerationResult {
     }
 
     // Accumulate content for current section
-    if (trimmedLine) {
-      takeLines.push(trimmedLine)
-    } else if (takeLines.length > 0 && currentSection === 'take') {
-      takeLines.push('') // Preserve paragraph breaks
+    if (currentSection !== 'headline') {
+      if (trimmedLine) {
+        takeLines.push(trimmedLine)
+      } else if (takeLines.length > 0 && currentSection === 'take') {
+        takeLines.push('') // Preserve paragraph breaks
+      }
     }
   }
 
@@ -113,6 +131,7 @@ function parseAgentResponse(rawContent: string): AgentGenerationResult {
     .trim()
 
   return {
+    headline,
     coreClaim,
     assumption,
     take,
@@ -124,13 +143,17 @@ function parseAgentResponse(rawContent: string): AgentGenerationResult {
 
 // Generate a title from the content
 export function generateTitle(content: AgentGenerationResult, archetype: string): string {
-  // Try to create a compelling title from the core claim
+  // Use the LLM-generated headline if available
+  if (content.headline) {
+    // Strip any wrapping quotes the LLM might add
+    return content.headline.replace(/^["']|["']$/g, '')
+  }
+
+  // Fallback: derive a title from the core claim
   if (content.coreClaim) {
-    // Truncate if too long
     if (content.coreClaim.length <= 80) {
       return content.coreClaim
     }
-    // Find a good break point
     const words = content.coreClaim.split(' ')
     let title = ''
     for (const word of words) {
@@ -140,7 +163,6 @@ export function generateTitle(content: AgentGenerationResult, archetype: string)
     return title + '...'
   }
 
-  // Fallback to archetype-based generic title
   return `${archetype}: Emerging Patterns`
 }
 

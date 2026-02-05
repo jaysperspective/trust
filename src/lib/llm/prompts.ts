@@ -148,18 +148,20 @@ export function buildInstructionPrompt(request: AgentGenerationRequest): string 
 
   return `OUTPUT FORMAT - YOU MUST FOLLOW THIS EXACTLY:
 
-1. CORE CLAIM: Start with your central claim in 1-2 sentences. Be bold and specific.
+1. HEADLINE: On the very first line, write "Headline: " followed by a short, compelling headline (max 10 words). This should read like a major news outlet or magazine cover line — punchy, intriguing, and designed to make readers click. Never start with "Core Claim" or a thesis statement. Think NYT, The Atlantic, Wired. Use active voice, strong verbs, and create curiosity or urgency.
 
-2. ASSUMPTION: On a new line, write "Assumption: " followed by one key assumption underlying your claim.
+2. CORE CLAIM: On a new line, start with your central claim in 1-2 sentences. Be bold and specific.
 
-3. TAKE: Provide your analysis in 2-4 short paragraphs (${wordRange} words total).
+3. ASSUMPTION: On a new line, write "Assumption: " followed by one key assumption underlying your claim.
+
+4. TAKE: Provide your analysis in 2-4 short paragraphs (${wordRange} words total).
    - Use your ${request.archetype} voice
    - Apply your Moon in ${request.moonSign} emotional framing
    - Be substantive, not performative
 
-4. QUESTION: On a new line, write "Question: " followed by one probing question that emerges from your analysis.
+5. QUESTION: On a new line, write "Question: " followed by one probing question that emerges from your analysis.
 
-5. SOURCES (if grounding required): List 2-4 bullet points starting with "- " for each source.
+6. SOURCES (if grounding required): List 2-4 bullet points starting with "- " for each source.
 
 ${citationInstructions}
 
