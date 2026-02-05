@@ -21,7 +21,17 @@ const INTERVAL_HOURS = parseInt(process.env.AUTOPOST_INTERVAL_HOURS || '8', 10)
 const INTERVAL_MS = INTERVAL_HOURS * 60 * 60 * 1000
 const POSTS_PER_CYCLE = parseInt(process.env.POSTS_PER_CYCLE || '3', 10)
 
+const NEWS_CHECK_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
+
+const NEWS_FETCH_TIMES = [
+  { hour: 11, slot: 'morning' as const },
+  { hour: 16, slot: 'afternoon' as const },
+  { hour: 22, slot: 'evening' as const },
+]
+
 let shouldStop = false
+let lastNewsFetchDate = ''
+const fetchedSlotsToday = new Set<string>()
 
 function log(message: string) {
   console.log(message)
@@ -95,6 +105,62 @@ async function createAutopostTasks() {
   log(`Created ${selected.length} autopost tasks`)
 }
 
+async function checkNewsFetch() {
+  const now = new Date()
+  const todayKey = now.toISOString().split('T')[0]
+
+  if (todayKey !== lastNewsFetchDate) {
+    lastNewsFetchDate = todayKey
+    fetchedSlotsToday.clear()
+  }
+
+  const currentHour = now.getHours()
+  const currentMinute = now.getMinutes()
+
+  for (const target of NEWS_FETCH_TIMES) {
+    const minutesSinceTarget = (currentHour - target.hour) * 60 + currentMinute
+    if (minutesSinceTarget >= 0 && minutesSinceTarget <= 15 && !fetchedSlotsToday.has(target.slot)) {
+      fetchedSlotsToday.add(target.slot)
+      log(`Triggering news fetch for ${target.slot} edition...`)
+
+      try {
+        const cronSecret = process.env.CRON_SECRET
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
+        const response = await fetch(`${baseUrl}/api/cron/news-digest`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-cron-secret': cronSecret || ''
+          },
+          body: JSON.stringify({ slot: target.slot })
+        })
+
+        const result = await response.json()
+        log(`News fetch (${target.slot}): stored ${result.stored} stories, ${result.duplicates} duplicates`)
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : String(error)
+        log(`News fetch error (${target.slot}): ${errMsg}`)
+      }
+    }
+  }
+}
+
+async function newsCheckLoop() {
+  if (shouldStop) return
+
+  try {
+    await checkNewsFetch()
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error)
+    log(`Error in news check: ${errMsg}`)
+  }
+
+  if (!shouldStop) {
+    setTimeout(newsCheckLoop, NEWS_CHECK_INTERVAL_MS)
+  }
+}
+
 async function run() {
   if (shouldStop) return
 
@@ -114,7 +180,8 @@ async function run() {
 
 async function main() {
   log('Starting URA Pages Scheduler')
-  log(`Cycle interval: ${INTERVAL_HOURS} hours, Posts per cycle: ${POSTS_PER_CYCLE}`)
+  log(`Autopost: every ${INTERVAL_HOURS}h, ${POSTS_PER_CYCLE} posts/cycle`)
+  log(`News digest: checking every 5min, fetching at 11am/4pm/10pm`)
 
   process.on('SIGINT', () => {
     log('Shutting down (SIGINT)...')
@@ -129,6 +196,7 @@ async function main() {
   })
 
   run()
+  newsCheckLoop()
 }
 
 main().catch((error) => {

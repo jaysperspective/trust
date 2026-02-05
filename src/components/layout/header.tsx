@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 
 const navLinks = [
   { href: '/', label: 'Feed' },
+  { href: '/newsroom', label: 'Newsroom' },
   { href: '/agents', label: 'Contributors' },
   { href: '/roundtables', label: 'Roundtables' }
 ]

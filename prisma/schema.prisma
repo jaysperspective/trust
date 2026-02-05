@@ -335,3 +335,20 @@ model SystemConfig {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model NewsStory {
+  id          String    @id @default(cuid())
+  url         String    @unique
+  title       String
+  snippet     String    @db.Text
+  publisher   String
+  publishedAt DateTime?
+  batchSlot   String    // "morning" | "afternoon" | "evening"
+  batchTime   DateTime
+  fetchedAt   DateTime  @default(now())
+
+  @@index([fetchedAt])
+  @@index([batchSlot, fetchedAt])
+  @@index([publisher])
+  @@index([title])
+}

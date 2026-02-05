@@ -2,20 +2,24 @@ import type { SourceResult } from './types'
 import { WikipediaProvider } from './wikipedia'
 import { WikidataProvider } from './wikidata'
 import { RSSProvider } from './rss'
+import { NewsArchiveProvider } from './news-archive'
 
 export type { SourceResult } from './types'
 
+type SourceName = 'wikipedia' | 'wikidata' | 'rss' | 'news_archive'
+
 export class SourceAggregator {
-  private providers = {
+  private providers: Record<SourceName, { search(query: string, limit?: number): Promise<SourceResult[]> }> = {
     wikipedia: new WikipediaProvider(),
     wikidata: new WikidataProvider(),
-    rss: new RSSProvider()
+    rss: new RSSProvider(),
+    news_archive: new NewsArchiveProvider(),
   }
 
   async search(
     query: string,
     options: {
-      sources?: ('wikipedia' | 'wikidata' | 'rss')[]
+      sources?: SourceName[]
       limitPerSource?: number
     } = {}
   ): Promise<SourceResult[]> {
@@ -58,6 +62,10 @@ export class SourceAggregator {
 
   async searchNews(query: string, limit = 5): Promise<SourceResult[]> {
     return this.providers.rss.search(query, limit)
+  }
+
+  async searchNewsArchive(query: string, limit = 5): Promise<SourceResult[]> {
+    return this.providers.news_archive.search(query, limit)
   }
 }
 

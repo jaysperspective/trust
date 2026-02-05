@@ -402,7 +402,7 @@ async function processAutonomousPost(task: {
   // Retrieve some sources for context
   const keyTerm = extractKeyTerms(prompt)
   const sources = await sourceAggregator.search(keyTerm, {
-    sources: ['wikipedia', 'rss'],
+    sources: ['wikipedia', 'rss', 'news_archive'],
     limitPerSource: 2
   })
 

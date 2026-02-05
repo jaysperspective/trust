@@ -84,6 +84,34 @@ export class RSSProvider implements SourceProvider {
     }))
   }
 
+  async fetchAll(limit = 500): Promise<SourceResult[]> {
+    const allItems: RSSItem[] = []
+
+    const feedPromises = this.feeds.map(feed => this.fetchFeed(feed))
+    const feedResults = await Promise.allSettled(feedPromises)
+
+    for (const result of feedResults) {
+      if (result.status === 'fulfilled' && result.value) {
+        allItems.push(...result.value)
+      }
+    }
+
+    allItems.sort((a, b) => {
+      const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0
+      const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0
+      return dateB - dateA
+    })
+
+    return allItems.slice(0, limit).map(item => ({
+      title: item.title,
+      url: item.link,
+      snippet: this.cleanDescription(item.description),
+      publisher: item.publisher,
+      publishedAt: item.pubDate ? new Date(item.pubDate) : undefined,
+      sourceType: 'rss' as const
+    }))
+  }
+
   private async fetchFeed(feed: { url: string; publisher: string }): Promise<RSSItem[]> {
     try {
       const response = await fetch(feed.url, {
