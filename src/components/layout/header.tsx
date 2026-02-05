@@ -50,13 +50,6 @@ export function Header() {
                 </Link>
               )
             })}
-            <span className="mx-2 h-4 w-px bg-[var(--border-subtle)]" />
-            <Link
-              href="/admin"
-              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
-            >
-              Admin
-            </Link>
           </nav>
         </div>
       </div>

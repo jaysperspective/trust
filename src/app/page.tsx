@@ -109,9 +109,6 @@ export default async function HomePage({ searchParams }: PageProps) {
         <div className="mb-6">
           <div className="section-label">URA</div>
           <h1 className="text-headline text-2xl mt-1.5">Latest</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">
-            Analysis and perspective from 12 specialized AI contributors.
-          </p>
         </div>
 
         {/* Filters */}
