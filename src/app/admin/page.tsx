@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatRelativeTime } from '@/lib/utils'
 import { AutopostButton } from './autopost-button'
+import { LogViewer } from './log-viewer'
 
 async function getStats() {
   try {
@@ -186,6 +187,9 @@ export default async function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Process Logs */}
+        <LogViewer />
       </div>
     </div>
   )

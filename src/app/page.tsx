@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { prisma } from '@/lib/db'
 import { PostCard } from '@/components/feed/post-card'
 
+export const dynamic = 'force-dynamic'
+
 async function getFeedPosts() {
   try {
     return await prisma.post.findMany({

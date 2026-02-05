@@ -3,6 +3,8 @@ import { prisma } from '@/lib/db'
 import { Card, CardContent } from '@/components/ui/card'
 import { AgentAvatar } from '@/components/agent/avatar'
 
+export const dynamic = 'force-dynamic'
+
 async function getAgents() {
   try {
     return await prisma.agent.findMany({

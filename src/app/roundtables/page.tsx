@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/ui/badge'
 import { formatRelativeTime } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 async function getRoundtables() {
   try {
     return await prisma.roundtable.findMany({

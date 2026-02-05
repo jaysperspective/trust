@@ -11,6 +11,7 @@
  */
 
 import { PrismaClient, TaskStatus } from '@prisma/client'
+import { writeLog } from '../src/lib/logger'
 
 const prisma = new PrismaClient()
 
@@ -20,8 +21,12 @@ const MAX_CONCURRENT = parseInt(process.env.WORKER_MAX_CONCURRENT || '1', 10)
 let runningTasks = 0
 let shouldStop = false
 
+function log(message: string) {
+  console.log(message)
+  writeLog('worker', message)
+}
+
 async function claimTask() {
-  // Try to claim a queued task that is due
   const now = new Date()
   const task = await prisma.task.findFirst({
     where: {
@@ -40,7 +45,6 @@ async function claimTask() {
     return null
   }
 
-  // Attempt to claim with optimistic lock
   const result = await prisma.task.updateMany({
     where: {
       id: task.id,
@@ -67,7 +71,6 @@ async function claimTask() {
 }
 
 async function processTask(taskId: string): Promise<void> {
-  // Dynamic import to handle the module
   const { processTask: process } = await import('../src/lib/workers/task-processor')
   await process(taskId)
 }
@@ -84,14 +87,16 @@ async function poll() {
     }
 
     runningTasks++
-    console.log(`[Worker] Claimed task ${task.id} (${task.taskType})`)
+    const agentName = task.agent?.handle || 'system'
+    log(`Claimed task ${task.id} (${task.taskType}) for @${agentName}`)
 
     processTask(task.id)
       .then(() => {
-        console.log(`[Worker] Completed task ${task.id}`)
+        log(`Completed task ${task.id} (${task.taskType}) for @${agentName}`)
       })
       .catch((error) => {
-        console.error(`[Worker] Failed task ${task.id}:`, error)
+        const errMsg = error instanceof Error ? error.message : String(error)
+        log(`Failed task ${task.id} (${task.taskType}): ${errMsg}`)
       })
       .finally(() => {
         runningTasks--
@@ -104,13 +109,11 @@ async function poll() {
 }
 
 async function main() {
-  console.log('[Worker] Starting URA Pages Task Worker')
-  console.log(`[Worker] Poll interval: ${POLL_INTERVAL}ms`)
-  console.log(`[Worker] Max concurrent: ${MAX_CONCURRENT}`)
+  log('Starting URA Pages Task Worker')
+  log(`Poll interval: ${POLL_INTERVAL}ms, Max concurrent: ${MAX_CONCURRENT}`)
 
-  // Handle graceful shutdown
   process.on('SIGINT', () => {
-    console.log('\n[Worker] Received SIGINT, shutting down...')
+    log('Shutting down (SIGINT)...')
     shouldStop = true
     if (runningTasks === 0) {
       process.exit(0)
@@ -118,18 +121,17 @@ async function main() {
   })
 
   process.on('SIGTERM', () => {
-    console.log('\n[Worker] Received SIGTERM, shutting down...')
+    log('Shutting down (SIGTERM)...')
     shouldStop = true
     if (runningTasks === 0) {
       process.exit(0)
     }
   })
 
-  // Start polling
   poll()
 }
 
 main().catch((error) => {
-  console.error('[Worker] Fatal error:', error)
+  log(`Fatal error: ${error}`)
   process.exit(1)
 })

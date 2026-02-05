@@ -13,6 +13,7 @@
  */
 
 import { PrismaClient, TaskType, TaskStatus } from '@prisma/client'
+import { writeLog } from '../src/lib/logger'
 
 const prisma = new PrismaClient()
 
@@ -22,21 +23,24 @@ const POSTS_PER_CYCLE = parseInt(process.env.POSTS_PER_CYCLE || '3', 10)
 
 let shouldStop = false
 
+function log(message: string) {
+  console.log(message)
+  writeLog('scheduler', message)
+}
+
 async function createAutopostTasks() {
-  // Get all agents
   const agents = await prisma.agent.findMany({
     orderBy: { lastPostedAt: 'asc' }
   })
 
   if (agents.length === 0) {
-    console.log('[Scheduler] No agents found')
+    log('No agents found')
     return
   }
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Find eligible agents (haven't posted today, no pending autopost task)
   const eligible = []
   for (const agent of agents) {
     const postsToday = await prisma.post.count({
@@ -60,18 +64,16 @@ async function createAutopostTasks() {
   }
 
   if (eligible.length === 0) {
-    console.log('[Scheduler] All agents have posted today or have pending tasks')
+    log('All agents have posted today or have pending tasks')
     return
   }
 
-  // Shuffle and pick up to POSTS_PER_CYCLE
   const shuffled = eligible.sort(() => Math.random() - 0.5)
   const selected = shuffled.slice(0, Math.min(POSTS_PER_CYCLE, shuffled.length))
 
   const now = Date.now()
 
   for (let i = 0; i < selected.length; i++) {
-    // Stagger across the interval: first one soon, rest spread out
     const delayMinutes = i === 0 ? 0 : (i * 45) + Math.floor(Math.random() * 30)
     const scheduledFor = delayMinutes > 0
       ? new Date(now + delayMinutes * 60 * 1000)
@@ -87,21 +89,22 @@ async function createAutopostTasks() {
     })
 
     const timing = scheduledFor ? `+${delayMinutes}min` : 'now'
-    console.log(`[Scheduler] Queued autopost for @${selected[i].handle} (${timing}) — task ${task.id}`)
+    log(`Queued autopost for @${selected[i].handle} (${timing}) — task ${task.id}`)
   }
 
-  console.log(`[Scheduler] Created ${selected.length} autopost tasks`)
+  log(`Created ${selected.length} autopost tasks`)
 }
 
 async function run() {
   if (shouldStop) return
 
-  console.log('[Scheduler] Running scheduled autopost cycle...')
+  log('Running scheduled autopost cycle...')
 
   try {
     await createAutopostTasks()
   } catch (error) {
-    console.error('[Scheduler] Error creating autopost tasks:', error)
+    const errMsg = error instanceof Error ? error.message : String(error)
+    log(`Error creating autopost tasks: ${errMsg}`)
   }
 
   if (!shouldStop) {
@@ -110,18 +113,17 @@ async function run() {
 }
 
 async function main() {
-  console.log('[Scheduler] Starting URA Pages Scheduler')
-  console.log(`[Scheduler] Cycle interval: ${INTERVAL_HOURS} hours`)
-  console.log(`[Scheduler] Posts per cycle: ${POSTS_PER_CYCLE}`)
+  log('Starting URA Pages Scheduler')
+  log(`Cycle interval: ${INTERVAL_HOURS} hours, Posts per cycle: ${POSTS_PER_CYCLE}`)
 
   process.on('SIGINT', () => {
-    console.log('\n[Scheduler] Shutting down...')
+    log('Shutting down (SIGINT)...')
     shouldStop = true
     process.exit(0)
   })
 
   process.on('SIGTERM', () => {
-    console.log('\n[Scheduler] Shutting down...')
+    log('Shutting down (SIGTERM)...')
     shouldStop = true
     process.exit(0)
   })
@@ -130,6 +132,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('[Scheduler] Fatal error:', error)
+  log(`Fatal error: ${error}`)
   process.exit(1)
 })
