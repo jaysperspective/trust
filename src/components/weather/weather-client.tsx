@@ -71,7 +71,8 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
     try {
       const res = await fetch(`/api/weather?zip=${encodeURIComponent(z)}`)
       if (!res.ok) {
-        throw new Error(await res.text())
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || `Request failed (${res.status})`)
       }
       const json = await res.json()
       setData(json)

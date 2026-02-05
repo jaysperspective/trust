@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 const DEFAULT_ZIP = '10001'
 const WEATHER_TIMEZONE = process.env.NEWS_TIMEZONE || 'America/New_York'
 
+export const dynamic = 'force-dynamic'
+
 type ZipResult = {
   places: { 'place name': string; state: string; latitude: string; longitude: string }[]
 }
@@ -12,8 +14,8 @@ function formatError(message: string, status = 400) {
 }
 
 async function geocodeZip(zip: string) {
-  const res = await fetch(`https://api.zippopotam.us/us/${zip}`)
-  if (!res.ok) throw new Error('ZIP lookup failed')
+  const res = await fetch(`https://api.zippopotam.us/us/${zip}`, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`ZIP lookup failed (status ${res.status})`)
   const data = (await res.json()) as ZipResult
   const place = data.places?.[0]
   if (!place) throw new Error('ZIP lookup had no places')
@@ -42,8 +44,8 @@ async function fetchWeather(lat: number, lon: number) {
     'weathercode'
   ].join(','))
 
-  const res = await fetch(url.toString())
-  if (!res.ok) throw new Error('Weather fetch failed')
+  const res = await fetch(url.toString(), { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Weather fetch failed (status ${res.status})`)
   return res.json()
 }
 
@@ -54,14 +56,14 @@ async function fetchAstronomy(lat: number, lon: number) {
   url.searchParams.set('timezone', 'auto')
   url.searchParams.set('daily', ['moon_phase', 'moonrise', 'moonset'].join(','))
 
-  const res = await fetch(url.toString())
-  if (!res.ok) throw new Error('Astronomy fetch failed')
+  const res = await fetch(url.toString(), { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Astronomy fetch failed (status ${res.status})`)
   return res.json()
 }
 
 async function fetchSpaceWeather() {
-  const res = await fetch('https://services.swpc.noaa.gov/products/alerts.json')
-  if (!res.ok) throw new Error('Space weather fetch failed')
+  const res = await fetch('https://services.swpc.noaa.gov/products/alerts.json', { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Space weather fetch failed (status ${res.status})`)
   const alerts = await res.json()
   return Array.isArray(alerts) ? alerts.slice(0, 5) : []
 }
@@ -107,7 +109,8 @@ export async function GET(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('Weather API error', error)
-    return formatError('Failed to fetch weather data', 500)
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Weather API error', message)
+    return formatError(message, 500)
   }
 }
