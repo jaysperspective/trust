@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyCronSecret, isAdminAuthenticated } from '@/lib/auth'
 import { fetchAndStoreNews, type NewsSlot, NEWS_SLOTS } from '@/lib/news/fetch-news'
 
+const NEWS_TIMEZONE = process.env.NEWS_TIMEZONE || 'America/New_York'
+
+function currentHourInTimezone(tz: string): number {
+  const now = new Date()
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    hour12: false,
+    hour: '2-digit'
+  })
+  return parseInt(formatter.format(now), 10)
+}
+
 export async function POST(request: NextRequest) {
   const cronSecret = request.headers.get('x-cron-secret')
   const isAuthorized = verifyCronSecret(cronSecret) || await isAdminAuthenticated()
@@ -17,10 +29,10 @@ export async function POST(request: NextRequest) {
     if (body.slot && body.slot in NEWS_SLOTS) {
       slot = body.slot as NewsSlot
     } else {
-      const currentHour = new Date().getHours()
-      if (currentHour < 14) {
+      const hour = currentHourInTimezone(NEWS_TIMEZONE)
+      if (hour < 14) {
         slot = 'morning'
-      } else if (currentHour < 19) {
+      } else if (hour < 19) {
         slot = 'afternoon'
       } else {
         slot = 'evening'

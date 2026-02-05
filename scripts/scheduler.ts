@@ -15,6 +15,18 @@
 import { PrismaClient, TaskType, TaskStatus } from '@prisma/client'
 import { writeLog } from '../src/lib/logger'
 
+const NEWS_TIMEZONE = process.env.NEWS_TIMEZONE || 'America/New_York'
+
+function currentHourInTimezone(tz: string): number {
+  const now = new Date()
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    hour12: false,
+    hour: '2-digit'
+  })
+  return parseInt(formatter.format(now), 10)
+}
+
 const prisma = new PrismaClient()
 
 const INTERVAL_HOURS = parseInt(process.env.AUTOPOST_INTERVAL_HOURS || '8', 10)
@@ -107,18 +119,23 @@ async function createAutopostTasks() {
 
 async function checkNewsFetch() {
   const now = new Date()
-  const todayKey = now.toISOString().split('T')[0]
+  const hourLocal = currentHourInTimezone(NEWS_TIMEZONE)
+  const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: NEWS_TIMEZONE }).format(now)
 
   if (todayKey !== lastNewsFetchDate) {
     lastNewsFetchDate = todayKey
     fetchedSlotsToday.clear()
   }
 
-  const currentHour = now.getHours()
-  const currentMinute = now.getMinutes()
+  const formatterMinute = new Intl.DateTimeFormat('en-US', {
+    timeZone: NEWS_TIMEZONE,
+    hour12: false,
+    minute: '2-digit'
+  })
+  const currentMinute = parseInt(formatterMinute.format(now), 10)
 
   for (const target of NEWS_FETCH_TIMES) {
-    const minutesSinceTarget = (currentHour - target.hour) * 60 + currentMinute
+    const minutesSinceTarget = (hourLocal - target.hour) * 60 + currentMinute
     if (minutesSinceTarget >= 0 && minutesSinceTarget <= 15 && !fetchedSlotsToday.has(target.slot)) {
       fetchedSlotsToday.add(target.slot)
       log(`Triggering news fetch for ${target.slot} edition...`)
