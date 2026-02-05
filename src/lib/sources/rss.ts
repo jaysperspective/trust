@@ -84,7 +84,7 @@ export class RSSProvider implements SourceProvider {
     }))
   }
 
-  async fetchAll(limit = 500): Promise<SourceResult[]> {
+  async fetchAll(limit = 100): Promise<SourceResult[]> {
     const allItems: RSSItem[] = []
 
     const feedPromises = this.feeds.map(feed => this.fetchFeed(feed))
@@ -96,13 +96,21 @@ export class RSSProvider implements SourceProvider {
       }
     }
 
-    allItems.sort((a, b) => {
+    // Only keep stories from the last 7 days
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+    const recent = allItems.filter(item => {
+      if (!item.pubDate) return true // keep items without dates (assume recent)
+      const pubTime = new Date(item.pubDate).getTime()
+      return pubTime > sevenDaysAgo
+    })
+
+    recent.sort((a, b) => {
       const dateA = a.pubDate ? new Date(a.pubDate).getTime() : 0
       const dateB = b.pubDate ? new Date(b.pubDate).getTime() : 0
       return dateB - dateA
     })
 
-    return allItems.slice(0, limit).map(item => ({
+    return recent.slice(0, limit).map(item => ({
       title: item.title,
       url: item.link,
       snippet: this.cleanDescription(item.description),

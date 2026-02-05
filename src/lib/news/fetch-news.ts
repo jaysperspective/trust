@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/db'
 import { RSSProvider } from '@/lib/sources/rss'
 
+const MAX_STORIES_PER_BATCH = 13
+
 export const NEWS_SLOTS = {
   morning:   { hour: 11, label: 'Morning Edition / 11 AM',   slot: 'morning'   },
   afternoon: { hour: 16, label: 'Afternoon Edition / 4 PM',  slot: 'afternoon' },
@@ -18,19 +20,31 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
   const batchTime = new Date()
 
   const provider = new RSSProvider()
-  const allItems = await provider.fetchAll(500)
+  // Fetch recent stories (already filtered to last 7 days, sorted newest first)
+  const allItems = await provider.fetchAll(100)
 
+  // Deduplicate against what's already in the database, then cap at 13
   let stored = 0
   let duplicates = 0
 
   for (const item of allItems) {
     if (!item.url) continue
+    if (stored >= MAX_STORIES_PER_BATCH) break
+
+    // Check if this URL already exists
+    const existing = await prisma.newsStory.findUnique({
+      where: { url: item.url },
+      select: { id: true }
+    })
+
+    if (existing) {
+      duplicates++
+      continue
+    }
 
     try {
-      await prisma.newsStory.upsert({
-        where: { url: item.url },
-        update: {},
-        create: {
+      await prisma.newsStory.create({
+        data: {
           url: item.url,
           title: item.title,
           snippet: item.snippet,
@@ -54,6 +68,6 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
   return {
     fetched: allItems.length,
     stored,
-    duplicates: allItems.length - stored,
+    duplicates,
   }
 }
