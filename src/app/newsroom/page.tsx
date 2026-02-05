@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { NewsStoryCard } from '@/components/newsroom/news-story-card'
 import { formatDateTimeTz } from '@/lib/utils'
+import NewsroomAutoRefresh from '@/components/newsroom/newsroom-auto-refresh'
 
 export const dynamic = 'force-dynamic'
 
@@ -121,6 +122,7 @@ export default async function NewsroomPage() {
   return (
     <section className="container-page py-8">
       <div className="max-w-2xl mx-auto">
+        <NewsroomAutoRefresh />
         <div className="mb-6">
           <div className="section-label">URA</div>
           <h1 className="text-headline text-2xl mt-1.5">Newsroom</h1>
