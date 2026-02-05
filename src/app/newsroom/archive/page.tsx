@@ -8,12 +8,30 @@ export const dynamic = 'force-dynamic'
 const PAGE_SIZE = 30
 
 async function getArchiveStories(query?: string, page = 1) {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
   const skip = (page - 1) * PAGE_SIZE
 
+  // Determine latest batch time to exclude from archive
+  const latestBatch = await prisma.newsStory.findFirst({
+    orderBy: [
+      { batchTime: 'desc' },
+      { fetchedAt: 'desc' }
+    ],
+    select: { batchTime: true, fetchedAt: true }
+  })
+
+  const latestBatchTime = latestBatch?.batchTime || latestBatch?.fetchedAt
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = { fetchedAt: { lt: today } }
+  const where: any = latestBatchTime
+    ? {
+        NOT: {
+          OR: [
+            { batchTime: latestBatch?.batchTime || undefined },
+            { AND: [{ batchTime: null }, { fetchedAt: latestBatchTime }] }
+          ]
+        }
+      }
+    : {}
 
   if (query && query.trim()) {
     const words = query.trim().split(/\s+/).filter(w => w.length > 2)

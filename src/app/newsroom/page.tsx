@@ -12,13 +12,31 @@ const SLOT_LABELS: Record<string, string> = {
   evening: 'Evening Edition / 10 PM',
 }
 
-async function getTodaysStories() {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+async function getLatestBatchStories() {
+  // Find the most recent batchTime (fallback to fetchedAt)
+  const latest = await prisma.newsStory.findFirst({
+    orderBy: [
+      { batchTime: 'desc' },
+      { fetchedAt: 'desc' }
+    ],
+    select: {
+      batchTime: true,
+      fetchedAt: true
+    }
+  })
+
+  if (!latest) return []
+
+  const where = latest.batchTime
+    ? { batchTime: latest.batchTime }
+    : { batchTime: null, fetchedAt: latest.fetchedAt }
 
   return prisma.newsStory.findMany({
-    where: { fetchedAt: { gte: today } },
-    orderBy: { fetchedAt: 'desc' },
+    where,
+    orderBy: [
+      { publishedAt: 'desc' },
+      { fetchedAt: 'desc' }
+    ]
   })
 }
 
@@ -41,7 +59,7 @@ function NewsSkeleton() {
 }
 
 async function TodaysNews() {
-  const stories = await getTodaysStories()
+  const stories = await getLatestBatchStories()
 
   if (stories.length === 0) {
     return (
@@ -56,6 +74,7 @@ async function TodaysNews() {
     )
   }
 
+  const batchTime = stories[0]?.batchTime || stories[0]?.fetchedAt
   const grouped = new Map<string, typeof stories>()
   for (const story of stories) {
     const list = grouped.get(story.batchSlot) || []
@@ -63,28 +82,9 @@ async function TodaysNews() {
     grouped.set(story.batchSlot, list)
   }
 
-  const editions = Array.from(grouped.entries()).map(([slot, list]) => {
-    const sortedStories = [...list].sort((a, b) => {
-      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : new Date(a.fetchedAt).getTime()
-      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : new Date(b.fetchedAt).getTime()
-      return dateB - dateA
-    })
-
-    // Use batchTime when present, fall back to fetchedAt of first story
-    const batchTime = sortedStories[0]?.batchTime || sortedStories[0]?.fetchedAt
-
-    return { slot, batchTime, stories: sortedStories }
-  })
-
-  editions.sort((a, b) => {
-    const timeA = a.batchTime ? new Date(a.batchTime).getTime() : 0
-    const timeB = b.batchTime ? new Date(b.batchTime).getTime() : 0
-    return timeB - timeA
-  })
-
   return (
     <div className="space-y-10">
-      {editions.map(({ slot, batchTime, stories: slotStories }) => {
+      {Array.from(grouped.entries()).map(([slot, slotStories]) => {
         if (!slotStories || slotStories.length === 0) return null
 
         return (
