@@ -180,6 +180,9 @@ export default async function AdminDashboard() {
               <Link href="/admin/tasks">
                 <Button variant="secondary" size="sm">Task Queue</Button>
               </Link>
+              <Link href="/admin/news">
+                <Button variant="secondary" size="sm">News Settings</Button>
+              </Link>
               <Link href="/admin/moderation">
                 <Button variant="secondary" size="sm">Moderation</Button>
               </Link>

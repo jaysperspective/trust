@@ -7,6 +7,11 @@ const DEFAULT_RSS_FEEDS = [
   { url: 'https://theintercept.com/feed/?rss', publisher: 'The Intercept' },
   { url: 'https://www.propublica.org/feeds/propublica/main', publisher: 'ProPublica' },
   { url: 'https://themarkup.org/feeds/rss.xml', publisher: 'The Markup' },
+  { url: 'https://phillewis.substack.com/feed', publisher: 'Phil Lewis' },
+  { url: 'https://heresthedealwithkg.substack.com/feed', publisher: "Here's The Deal with KG" },
+  { url: 'https://tirreab.substack.com/feed', publisher: 'Tirrea B' },
+  { url: 'https://laurengrubaughthomas.substack.com/feed', publisher: 'Lauren Grubaugh Thomas' },
+  { url: 'https://healthyfutures.substack.com/feed', publisher: 'Healthy Futures' },
 
   // Social science & research
   { url: 'https://www.pewresearch.org/feed', publisher: 'Pew Research Center' },
@@ -58,7 +63,11 @@ export class RSSProvider implements SourceProvider {
   private feeds: { url: string; publisher: string }[]
 
   constructor(feeds?: { url: string; publisher: string }[]) {
-    this.feeds = feeds || DEFAULT_RSS_FEEDS
+    if (feeds && feeds.length > 0) {
+      this.feeds = [...DEFAULT_RSS_FEEDS, ...feeds]
+    } else {
+      this.feeds = DEFAULT_RSS_FEEDS
+    }
   }
 
   async search(query: string, limit = 5): Promise<SourceResult[]> {

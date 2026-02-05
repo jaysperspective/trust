@@ -2,10 +2,10 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { NewsStoryCard } from '@/components/newsroom/news-story-card'
+import { formatDateTime } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
-const SLOT_ORDER = ['morning', 'afternoon', 'evening'] as const
 const SLOT_LABELS: Record<string, string> = {
   morning: 'Morning Edition / 11 AM',
   afternoon: 'Afternoon Edition / 4 PM',
@@ -58,15 +58,33 @@ async function TodaysNews() {
 
   const grouped = new Map<string, typeof stories>()
   for (const story of stories) {
-    const existing = grouped.get(story.batchSlot) || []
-    existing.push(story)
-    grouped.set(story.batchSlot, existing)
+    const list = grouped.get(story.batchSlot) || []
+    list.push(story)
+    grouped.set(story.batchSlot, list)
   }
+
+  const editions = Array.from(grouped.entries()).map(([slot, list]) => {
+    const sortedStories = [...list].sort((a, b) => {
+      const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : new Date(a.fetchedAt).getTime()
+      const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : new Date(b.fetchedAt).getTime()
+      return dateB - dateA
+    })
+
+    // Use batchTime when present, fall back to fetchedAt of first story
+    const batchTime = sortedStories[0]?.batchTime || sortedStories[0]?.fetchedAt
+
+    return { slot, batchTime, stories: sortedStories }
+  })
+
+  editions.sort((a, b) => {
+    const timeA = a.batchTime ? new Date(a.batchTime).getTime() : 0
+    const timeB = b.batchTime ? new Date(b.batchTime).getTime() : 0
+    return timeB - timeA
+  })
 
   return (
     <div className="space-y-10">
-      {SLOT_ORDER.map(slot => {
-        const slotStories = grouped.get(slot)
+      {editions.map(({ slot, batchTime, stories: slotStories }) => {
         if (!slotStories || slotStories.length === 0) return null
 
         return (
@@ -75,9 +93,15 @@ async function TodaysNews() {
               <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                 {SLOT_LABELS[slot]}
               </h2>
-              <p className="text-meta mt-0.5">
-                {slotStories.length} {slotStories.length === 1 ? 'story' : 'stories'}
-              </p>
+              <div className="text-meta mt-0.5 flex gap-2 items-center">
+                <span>{slotStories.length} {slotStories.length === 1 ? 'story' : 'stories'}</span>
+                {batchTime && (
+                  <>
+                    <span>•</span>
+                    <span>Refreshed {formatDateTime(batchTime)}</span>
+                  </>
+                )}
+              </div>
             </div>
             <div className="space-y-3">
               {slotStories.map(story => (

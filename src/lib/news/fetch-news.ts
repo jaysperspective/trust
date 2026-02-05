@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/db'
 import { RSSProvider } from '@/lib/sources/rss'
-
-const MAX_STORIES_PER_BATCH = 13
+import { getNewsConfig } from './config'
 
 export const NEWS_SLOTS = {
   morning:   { hour: 11, label: 'Morning Edition / 11 AM',   slot: 'morning'   },
@@ -15,21 +14,47 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
   fetched: number
   stored: number
   duplicates: number
+  skippedByCap: number
 }> {
   const slotConfig = NEWS_SLOTS[slot]
   const batchTime = new Date()
 
-  const provider = new RSSProvider()
+  const config = await getNewsConfig()
+
+  const provider = new RSSProvider(config.customFeeds)
   // Fetch recent stories (already filtered to last 7 days, sorted newest first)
-  const allItems = await provider.fetchAll(100)
+  const allItems = await provider.fetchAll(200)
 
   // Deduplicate against what's already in the database, then cap at 13
   let stored = 0
   let duplicates = 0
+  let skippedByCap = 0
+  const perPublisherCount: Record<string, number> = {}
 
-  for (const item of allItems) {
+  // Compute weighted ordering
+  const scored = allItems.map(item => {
+    const publisherWeight = config.publisherWeights.find(p => p.publisher.toLowerCase() === (item.publisher || '').toLowerCase())
+    const keywordScore = config.keywordWeights.reduce((score, kw) => {
+      const haystack = `${item.title} ${item.snippet}`.toLowerCase()
+      return haystack.includes(kw.keyword.toLowerCase()) ? score + kw.weight : score
+    }, 0)
+    return {
+      ...item,
+      score: (publisherWeight?.weight || 0) + keywordScore
+    }
+  })
+
+  // Sort by (higher score, newer publishedAt)
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score
+    const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
+    const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
+    return dateB - dateA
+  })
+
+  for (const item of scored) {
     if (!item.url) continue
-    if (stored >= MAX_STORIES_PER_BATCH) break
+    if (stored >= config.maxStoriesPerBatch) break
 
     // Check if this URL already exists
     const existing = await prisma.newsStory.findUnique({
@@ -39,6 +64,13 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
 
     if (existing) {
       duplicates++
+      continue
+    }
+
+    const publisherKey = (item.publisher || 'Unknown').toLowerCase()
+    const count = perPublisherCount[publisherKey] || 0
+    if (count >= config.maxPerPublisher) {
+      skippedByCap++
       continue
     }
 
@@ -55,6 +87,7 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
         }
       })
       stored++
+      perPublisherCount[publisherKey] = count + 1
     } catch (error) {
       const prismaError = error as { code?: string }
       if (prismaError.code === 'P2002') {
@@ -66,8 +99,9 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
   }
 
   return {
-    fetched: allItems.length,
+    fetched: scored.length,
     stored,
     duplicates,
+    skippedByCap,
   }
 }
