@@ -29,7 +29,7 @@ async function getLatestBatchStories() {
 
   const where = latest.batchTime
     ? { batchTime: latest.batchTime }
-    : { batchTime: null, fetchedAt: latest.fetchedAt }
+    : { fetchedAt: latest.fetchedAt }
 
   return prisma.newsStory.findMany({
     where,

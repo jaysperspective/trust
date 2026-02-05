@@ -23,14 +23,9 @@ async function getArchiveStories(query?: string, page = 1) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = latestBatchTime
-    ? {
-        NOT: {
-          OR: [
-            { batchTime: latestBatch?.batchTime || undefined },
-            { AND: [{ batchTime: null }, { fetchedAt: latestBatchTime }] }
-          ]
-        }
-      }
+    ? latestBatch?.batchTime
+      ? { NOT: { batchTime: latestBatch.batchTime } }
+      : { NOT: { fetchedAt: latestBatchTime } }
     : {}
 
   if (query && query.trim()) {
