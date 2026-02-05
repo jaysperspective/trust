@@ -1,33 +1,43 @@
 import type { SourceProvider, SourceResult } from './types'
 
-// Default RSS feeds from reputable outlets
+// RSS feeds curated for social science, culture, activism, discovery,
+// and journalism that goes behind the veil of society.
 const DEFAULT_RSS_FEEDS = [
-  // Major wire services & newspapers
-  { url: 'https://feeds.bbci.co.uk/news/world/rss.xml', publisher: 'BBC News' },
-  { url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml', publisher: 'New York Times' },
-  { url: 'https://feeds.npr.org/1001/rss.xml', publisher: 'NPR' },
-  { url: 'https://www.theguardian.com/world/rss', publisher: 'The Guardian' },
-  { url: 'https://www.ft.com/rss/home', publisher: 'Financial Times' },
-  { url: 'https://www.aljazeera.com/xml/rss/all.xml', publisher: 'Al Jazeera' },
-  { url: 'https://feeds.reuters.com/reuters/topNews', publisher: 'Reuters' },
-  { url: 'https://feeds.bloomberg.com/markets/news.rss', publisher: 'Bloomberg' },
+  // Investigative & adversarial journalism
+  { url: 'https://theintercept.com/feed/?rss', publisher: 'The Intercept' },
+  { url: 'https://www.propublica.org/feeds/propublica/main', publisher: 'ProPublica' },
+  { url: 'https://themarkup.org/feeds/rss.xml', publisher: 'The Markup' },
 
-  // Research
+  // Social science & research
   { url: 'https://www.pewresearch.org/feed', publisher: 'Pew Research Center' },
+  { url: 'https://theconversation.com/us/articles.atom', publisher: 'The Conversation' },
+  { url: 'https://undark.org/feed', publisher: 'Undark' },
 
-  // Black journalism
+  // Culture, philosophy & ideas
+  { url: 'https://aeon.co/feed.rss', publisher: 'Aeon' },
+  { url: 'https://www.aljazeera.com/xml/rss/all.xml', publisher: 'Al Jazeera' },
+  { url: 'https://restofworld.org/feed/latest', publisher: 'Rest of World' },
+  { url: 'https://globalvoices.org/feed/', publisher: 'Global Voices' },
+
+  // Activism, politics & progressive lens
+  { url: 'https://jacobin.com/feed', publisher: 'Jacobin' },
+  { url: 'https://www.thenation.com/feed/?post_type=article', publisher: 'The Nation' },
+  { url: 'https://www.commondreams.org/feeds/feed.rss', publisher: 'Common Dreams' },
+  { url: 'http://www.democracynow.org/democracynow.rss', publisher: 'Democracy Now!' },
+
+  // Black journalism & culture
   { url: 'https://www.theroot.com/rss', publisher: 'The Root' },
-  { url: 'https://thegrio.com/feed', publisher: 'TheGrio' },
-  { url: 'https://www.essence.com/feed', publisher: 'Essence' },
   { url: 'https://capitalbnews.org/feed', publisher: 'Capital B News' },
   { url: 'https://atlantablackstar.com/feed', publisher: 'Atlanta Black Star' },
-  { url: 'https://blavity.com/feed', publisher: 'Blavity' },
 
-  // Space & science
+  // Science & discovery
   { url: 'https://www.space.com/feeds/all', publisher: 'Space.com' },
-  { url: 'https://spacenews.com/feed', publisher: 'SpaceNews' },
   { url: 'https://www.nasa.gov/news-release/feed/', publisher: 'NASA' },
   { url: 'https://feeds.arstechnica.com/arstechnica/science', publisher: 'Ars Technica' },
+
+  // Global wire (kept for depth)
+  { url: 'https://www.theguardian.com/world/rss', publisher: 'The Guardian' },
+  { url: 'https://feeds.npr.org/1001/rss.xml', publisher: 'NPR' },
 ]
 
 interface RSSItem {
