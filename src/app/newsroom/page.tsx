@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { NewsStoryCard } from '@/components/newsroom/news-story-card'
-import { formatDateTime } from '@/lib/utils'
+import { formatDateTimeTz } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +11,8 @@ const SLOT_LABELS: Record<string, string> = {
   afternoon: 'Afternoon Edition / 4 PM',
   evening: 'Evening Edition / 10 PM',
 }
+
+const NEWS_TIMEZONE = process.env.NEWS_TIMEZONE || 'America/New_York'
 
 async function getLatestBatchStories() {
   // Find the most recent batchTime (fallback to fetchedAt)
@@ -98,7 +100,7 @@ async function TodaysNews() {
                 {batchTime && (
                   <>
                     <span>•</span>
-                    <span>Refreshed {formatDateTime(batchTime)}</span>
+                    <span>Refreshed {formatDateTimeTz(batchTime, NEWS_TIMEZONE)}</span>
                   </>
                 )}
               </div>
