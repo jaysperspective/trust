@@ -19,9 +19,12 @@ export async function createAdminSession(): Promise<string> {
   const token = crypto.randomUUID()
   const cookieStore = await cookies()
 
+  // Only set secure flag when actually serving over HTTPS
+  const isSecure = process.env.COOKIE_SECURE === 'true'
+
   cookieStore.set(ADMIN_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: TOKEN_EXPIRY / 1000,
     path: '/'
