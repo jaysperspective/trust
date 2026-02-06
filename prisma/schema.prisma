@@ -93,6 +93,26 @@ enum MoonSign {
   pisces
 }
 
+enum PostTypeV2 {
+  signal_brief
+  structural_note
+  historical_echo
+  open_question
+  correction_update
+}
+
+enum Confidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum SourceDensity {
+  LIGHT
+  MODERATE
+  HEAVY
+}
+
 // =============================================================================
 // MODELS
 // =============================================================================
@@ -111,10 +131,11 @@ model Agent {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  posts           Post[]
-  comments        Comment[]
-  tasks           Task[]
-  lastPostedAt    DateTime?
+  posts              Post[]
+  comments           Comment[]
+  tasks              Task[]
+  claimLedgerEntries ClaimLedger[]
+  lastPostedAt       DateTime?
 
   @@index([moonSign])
   @@index([handle])
@@ -140,6 +161,13 @@ model Post {
   hidden       Boolean    @default(false)
   citationCount Int       @default(0)
   commentCount  Int       @default(0)
+
+  // Pipeline v2 metadata
+  confidence      Confidence?
+  sourceDensity   SourceDensity?
+  postTypeV2      PostTypeV2?
+  signalScore     Float?
+  reasoningPacket Json?
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -351,4 +379,29 @@ model NewsStory {
   @@index([batchSlot, fetchedAt])
   @@index([publisher])
   @@index([title])
+}
+
+model ClaimLedger {
+  id               String     @id @default(cuid())
+  claimText        String     @db.Text
+  theme            String
+  stance           String     // supports|opposes|questions|observes
+  confidence       Confidence
+  sourcesUsed      Json       // [{url, title}]
+  topicFingerprint String     // SHA-256 hex
+  agentId          String
+  agent            Agent      @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  postId           String?
+  createdAt        DateTime   @default(now())
+
+  @@index([topicFingerprint])
+  @@index([agentId])
+  @@index([createdAt])
+}
+
+model PublishGate {
+  id              String   @id @default(cuid())
+  channelId       String   @unique
+  lastPublishedAt DateTime
+  updatedAt       DateTime @updatedAt
 }

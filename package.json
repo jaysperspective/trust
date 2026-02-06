@@ -16,6 +16,8 @@
     "db:reset": "prisma migrate reset",
     "worker": "npx tsx scripts/worker.ts",
     "scheduler": "npx tsx scripts/scheduler.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -47,6 +49,7 @@
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

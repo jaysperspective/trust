@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/db'
-import { TaskType, TaskStatus, PostType, CommentType, SourceType, MoonSign } from '@prisma/client'
-import { generateAgentContent, generateTitle, generateExcerpt } from '@/lib/llm/agent-generator'
+import { TaskType, TaskStatus, PostType, CommentType, SourceType } from '@prisma/client'
+import { generateAgentContent } from '@/lib/llm/agent-generator'
 import { sourceAggregator } from '@/lib/sources'
-import { AUTONOMOUS_TOPIC_SEEDS } from '@/lib/llm/prompts'
 import type { AgentGenerationRequest } from '@/lib/llm/types'
+import { runAutonomousPostPipeline } from '@/lib/pipeline'
 
 interface TaskInput {
   prompt?: string
@@ -378,105 +378,31 @@ async function processAutonomousPost(task: {
     throw new Error('Agent required for autonomous_post')
   }
 
-  const input = task.input as TaskInput
-
-  // Check if agent has already posted today
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const postsToday = await prisma.post.count({
-    where: {
-      agentId: task.agent.id,
-      createdAt: { gte: today }
-    }
-  })
-
-  if (postsToday > 0) {
-    throw new Error('Agent has already posted today')
-  }
-
-  // Select a topic seed
-  const seedCategory = AUTONOMOUS_TOPIC_SEEDS[Math.floor(Math.random() * AUTONOMOUS_TOPIC_SEEDS.length)]
-  const prompt = seedCategory.prompts[Math.floor(Math.random() * seedCategory.prompts.length)]
-
-  // Retrieve some sources for context
-  const keyTerm = extractKeyTerms(prompt)
-  const sources = await sourceAggregator.search(keyTerm, {
-    sources: ['wikipedia', 'rss', 'news_archive'],
-    limitPerSource: 2
-  })
-
-  const retrievedSources = sources.map(s => ({
-    title: s.title,
-    url: s.url,
-    snippet: s.snippet,
-    publisher: s.publisher,
-    sourceType: s.sourceType
-  }))
-
-  // Generate content
-  const voiceRules = task.agent.voiceRules as AgentGenerationRequest['voiceRules']
-  const result = await generateAgentContent({
-    agentId: task.agent.id,
-    agentHandle: task.agent.handle,
-    moonSign: task.agent.moonSign,
-    archetype: task.agent.archetype,
-    voiceRules,
-    prompt,
-    retrievedSources,
-    responseMode: 'full',
-    groundingMode: 'must_cite',
-    taskType: 'autonomous_post'
-  })
-
-  // Create the post
-  const title = generateTitle(result, task.agent.archetype)
-  const excerpt = generateExcerpt(result)
-  const formattedContent = formatAgentResponse(result)
-
-  // Determine post type based on theme
-  const postType = getPostTypeFromTheme(seedCategory.theme)
-
-  const post = await prisma.post.create({
-    data: {
-      title,
-      content: formattedContent,
-      excerpt,
-      postType,
-      agentId: task.agent.id,
-      citationCount: result.sources.length
-    }
-  })
-
-  // Store citations
-  for (const source of result.sources) {
-    await prisma.citation.create({
-      data: {
-        sourceType: SourceType.wikipedia,
-        title: source.title,
-        url: source.url,
-        snippet: source.snippet,
-        postId: post.id
-      }
-    })
-  }
-
-  // Update agent's last posted time
-  await prisma.agent.update({
-    where: { id: task.agent.id },
-    data: { lastPostedAt: new Date() }
-  })
+  // Run the full pipeline (signal scoring → reasoning → ledger → post → lint → editor)
+  const result = await runAutonomousPostPipeline(task.id, task.agent)
 
   // Update task output
   await prisma.task.update({
     where: { id: task.id },
     data: {
-      output: { postId: post.id }
-    }
+      output: result as any,
+    },
   })
 
-  // Queue delayed comment tasks from other agents
-  await queueFeedComments(post.id, task.agent.id)
+  if (result.skipped) {
+    console.log(`[Worker] Autonomous post skipped: ${result.reason}`)
+    return
+  }
+
+  if (result.dryRun) {
+    console.log('[Worker] DRY_RUN — no post created')
+    return
+  }
+
+  if (result.postId) {
+    // Queue delayed comment tasks from other agents
+    await queueFeedComments(result.postId, task.agent.id)
+  }
 }
 
 function formatAgentResponse(result: {
@@ -517,29 +443,6 @@ function formatAgentResponse(result: {
   }
 
   return parts.join('') || result.rawContent
-}
-
-function extractKeyTerms(prompt: string): string {
-  // Simple extraction - get important words
-  const stopWords = new Set(['what', 'which', 'who', 'how', 'is', 'are', 'the', 'a', 'an', 'that', 'this', 'most', 'people'])
-  const words = prompt.toLowerCase().split(/\W+/).filter(w => w.length > 3 && !stopWords.has(w))
-  return words.slice(0, 3).join(' ')
-}
-
-function getPostTypeFromTheme(theme: string): PostType {
-  switch (theme) {
-    case 'emerging_pattern':
-    case 'collapsing_assumption':
-      return PostType.signal
-    case 'historical_rhyme':
-    case 'power_dynamics':
-      return PostType.context
-    case 'collective_intelligence':
-    case 'boundary_dissolution':
-      return PostType.synthesis
-    default:
-      return PostType.meta
-  }
 }
 
 async function queueFeedComments(postId: string, authorAgentId: string) {

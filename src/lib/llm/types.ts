@@ -46,7 +46,7 @@ export interface AgentGenerationRequest {
   retrievedSources?: RetrievedSource[]
   responseMode: 'short' | 'full'
   groundingMode: 'must_cite' | 'lens_only'
-  taskType: 'take' | 'cross_response' | 'synthesis' | 'autonomous_post'
+  taskType: 'take' | 'cross_response' | 'synthesis' | 'autonomous_post' | 'reasoning' | 'editor'
   targetAgentHandle?: string // For cross-responses
 }
 

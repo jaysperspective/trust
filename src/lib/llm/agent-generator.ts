@@ -23,7 +23,7 @@ export async function generateAgentContent(
   return parseAgentResponse(result.content)
 }
 
-function parseAgentResponse(rawContent: string): AgentGenerationResult {
+export function parseAgentResponse(rawContent: string): AgentGenerationResult {
   // Default values
   let headline = ''
   let coreClaim = ''
