@@ -19,6 +19,7 @@ type WeatherResponse = {
   spaceWeather: unknown[]
   weatherNews?: { title: string; url: string; source: string; publishedAt?: string }[]
   tropicalConfig: null | { body: string; sign: string; degree: number }[]
+  moonPhase: number | null
   batchTime: string
   timezone: string
 }
@@ -44,20 +45,21 @@ const WEATHER_MAP: Record<number, string> = {
   82: 'Heavy showers',
 }
 
-function moonPhaseName(value: number | undefined) {
-  if (value === undefined) return '—'
-  const phases = [
-    'New Moon',
-    'Waxing Crescent',
-    'First Quarter',
-    'Waxing Gibbous',
-    'Full Moon',
-    'Waning Gibbous',
-    'Last Quarter',
-    'Waning Crescent'
-  ]
+const MOON_PHASES: { name: string; icon: string }[] = [
+  { name: 'New Moon',        icon: '\u{1F311}' },
+  { name: 'Waxing Crescent', icon: '\u{1F312}' },
+  { name: 'First Quarter',   icon: '\u{1F313}' },
+  { name: 'Waxing Gibbous',  icon: '\u{1F314}' },
+  { name: 'Full Moon',       icon: '\u{1F315}' },
+  { name: 'Waning Gibbous',  icon: '\u{1F316}' },
+  { name: 'Last Quarter',    icon: '\u{1F317}' },
+  { name: 'Waning Crescent', icon: '\u{1F318}' },
+]
+
+function getMoonPhase(value: number | null | undefined) {
+  if (value === null || value === undefined) return null
   const index = Math.round((value / 360) * 7) % 8
-  return phases[index]
+  return MOON_PHASES[index]
 }
 
 export function WeatherClient({ initialZip }: { initialZip?: string }) {
@@ -114,7 +116,7 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
     return entries
   }, [data])
 
-  const moonPhase = data?.astronomy?.daily?.moon_phase?.[0]
+  const moonPhase = getMoonPhase(data?.moonPhase)
   const moonSign = data?.tropicalConfig?.find(p => p.body === 'Moon')
 
   return (
@@ -160,11 +162,16 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
               </p>
               <p className="text-meta text-sm">Wind {Math.round(data.current.windspeed)} mph</p>
             </div>
-            <div>
+            <div className="text-center">
               <p className="text-sm text-meta">Moon</p>
-              <p className="text-lg font-semibold text-[var(--text-primary)]">
-                {moonPhase !== undefined ? moonPhaseName(moonPhase) : 'Unavailable'}
-              </p>
+              {moonPhase ? (
+                <>
+                  <p className="text-3xl leading-tight" title={moonPhase.name}>{moonPhase.icon}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">{moonPhase.name}</p>
+                </>
+              ) : (
+                <p className="text-lg font-semibold text-[var(--text-primary)]">--</p>
+              )}
               {moonSign && (
                 <p className="text-meta text-sm">
                   {moonSign.sign} {moonSign.degree.toFixed(0)}°

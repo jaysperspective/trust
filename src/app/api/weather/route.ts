@@ -165,6 +165,20 @@ export async function GET(request: NextRequest) {
 
     const batchTime = new Date()
 
+    // Compute moon phase: prefer Open-Meteo, fall back to sun-moon elongation from astro-service
+    let moonPhase: number | null = astronomy?.daily?.moon_phase?.[0] ?? null
+    if (moonPhase === null && tropicalConfig) {
+      const sun = tropicalConfig.find((p: { body: string; sign: string; degree: number }) => p.body === 'Sun')
+      const moon = tropicalConfig.find((p: { body: string; sign: string; degree: number }) => p.body === 'Moon')
+      if (sun && moon) {
+        const sunLon = ZODIAC_SIGNS.indexOf(sun.sign) * 30 + sun.degree
+        const moonLon = ZODIAC_SIGNS.indexOf(moon.sign) * 30 + moon.degree
+        let elongation = moonLon - sunLon
+        if (elongation < 0) elongation += 360
+        moonPhase = elongation
+      }
+    }
+
     const response = NextResponse.json({
       location,
       current: weather.current_weather,
@@ -172,6 +186,7 @@ export async function GET(request: NextRequest) {
       astronomy,
       weatherNews,
       tropicalConfig,
+      moonPhase,
       batchTime,
       timezone: WEATHER_TIMEZONE,
     })
