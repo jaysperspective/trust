@@ -52,6 +52,7 @@ export function initDatabase(): void {
   // Create indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_posted_items_feed ON posted_items(feed);
+    CREATE INDEX IF NOT EXISTS idx_posted_items_tweeted_at ON posted_items(tweeted_at);
     CREATE INDEX IF NOT EXISTS idx_queue_status ON queue(status);
     CREATE INDEX IF NOT EXISTS idx_queue_next_attempt ON queue(next_attempt_at);
   `);
@@ -89,6 +90,20 @@ export function getPostedItemsCount(): number {
   return result.count;
 }
 
+/**
+ * Get the timestamp of the last posted story (for global throttle)
+ */
+export function getLastStoryPostedAt(): Date | null {
+  const stmt = db.prepare('SELECT MAX(tweeted_at) as lastTweetedAt FROM posted_items');
+  const result = stmt.get() as { lastTweetedAt: string | null };
+
+  if (!result.lastTweetedAt) {
+    return null;
+  }
+
+  return new Date(result.lastTweetedAt);
+}
+
 // Queue operations
 export type QueueStatus = 'queued' | 'posting' | 'posted' | 'failed';
 
@@ -104,6 +119,7 @@ export interface QueueItem {
   errorMessage: string | null;
 }
 
+// Basic feed item (backward compatible)
 export interface FeedItem {
   id: string;
   feed: 'NEWSROOM' | 'LATEST';
@@ -112,12 +128,17 @@ export interface FeedItem {
   pubDate: string | null;
 }
 
+// Extended feed item with content for threads
+export interface FeedItemExtended extends FeedItem {
+  content?: string | null;
+}
+
 export function isItemInQueue(id: string): boolean {
   const stmt = db.prepare("SELECT 1 FROM queue WHERE id = ? AND status IN ('queued', 'posting')");
   return stmt.get(id) !== undefined;
 }
 
-export function addToQueue(item: FeedItem): void {
+export function addToQueue(item: FeedItemExtended): void {
   const now = new Date().toISOString();
   const stmt = db.prepare(`
     INSERT OR IGNORE INTO queue (id, feed, payload_json, status, attempts, next_attempt_at, created_at, updated_at)
@@ -138,6 +159,20 @@ export function getNextQueuedItem(): QueueItem | null {
     LIMIT 1
   `);
   return stmt.get(now) as QueueItem | null;
+}
+
+export function peekNextQueuedItem(): QueueItem | null {
+  // Peek at the next item without checking next_attempt_at (for throttle scheduling)
+  const stmt = db.prepare(`
+    SELECT id, feed, payload_json as payloadJson, status, attempts,
+           next_attempt_at as nextAttemptAt, created_at as createdAt,
+           updated_at as updatedAt, error_message as errorMessage
+    FROM queue
+    WHERE status = 'queued'
+    ORDER BY created_at ASC
+    LIMIT 1
+  `);
+  return stmt.get() as QueueItem | null;
 }
 
 export function updateQueueItem(

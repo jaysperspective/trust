@@ -2,12 +2,16 @@ import Parser from 'rss-parser';
 import crypto from 'crypto';
 import { config } from './config.js';
 import { logger } from './logger.js';
-import { FeedItem, isItemPosted, isItemInQueue, addToQueue } from './db.js';
+import { FeedItemExtended, isItemPosted, isItemInQueue, addToQueue } from './db.js';
 
-const parser = new Parser({
+// Custom RSS parser with content:encoded support
+const parser = new Parser<Record<string, unknown>, { 'content:encoded'?: string }>({
   timeout: 30000,
   headers: {
     'User-Agent': 'RSS-X-Autoposter/1.0',
+  },
+  customFields: {
+    item: ['content:encoded'],
   },
 });
 
@@ -19,6 +23,55 @@ interface RSSItem {
   title?: string;
   pubDate?: string;
   isoDate?: string;
+  content?: string;
+  contentSnippet?: string;
+  'content:encoded'?: string;
+  description?: string;
+}
+
+/**
+ * Replace localhost URLs with the public base URL
+ */
+function replaceLocalhostUrl(url: string): string {
+  if (!url) return url;
+
+  // Patterns to replace
+  const localhostPatterns = [
+    /https?:\/\/localhost:3000/gi,
+    /https?:\/\/localhost/gi,
+    /https?:\/\/127\.0\.0\.1:3000/gi,
+    /https?:\/\/127\.0\.0\.1/gi,
+  ];
+
+  let result = url;
+  for (const pattern of localhostPatterns) {
+    result = result.replace(pattern, config.basePublicUrl.replace(/\/$/, ''));
+  }
+
+  return result;
+}
+
+/**
+ * Normalize URL: replace localhost, ensure HTTPS if base is HTTPS
+ */
+function normalizePublicUrl(url: string): string {
+  let normalized = replaceLocalhostUrl(url);
+
+  // If our base URL is HTTPS, upgrade HTTP to HTTPS
+  if (config.basePublicUrl.startsWith('https://') && normalized.startsWith('http://')) {
+    // Only upgrade if it's our domain
+    try {
+      const baseHost = new URL(config.basePublicUrl).hostname;
+      const urlHost = new URL(normalized).hostname;
+      if (urlHost === baseHost) {
+        normalized = normalized.replace('http://', 'https://');
+      }
+    } catch {
+      // If URL parsing fails, leave as-is
+    }
+  }
+
+  return normalized;
 }
 
 /**
@@ -26,14 +79,15 @@ interface RSSItem {
  * Priority: guid > normalized link > hash of title+pubDate
  */
 function generateItemId(item: RSSItem, feedType: FeedType): string {
-  // 1. Try GUID
+  // 1. Try GUID (after normalizing localhost)
   if (item.guid && item.guid.trim()) {
-    return `guid:${item.guid.trim()}`;
+    const normalizedGuid = replaceLocalhostUrl(item.guid.trim());
+    return `guid:${normalizedGuid}`;
   }
 
   // 2. Try normalized link
   if (item.link && item.link.trim()) {
-    const normalizedLink = normalizeUrl(item.link);
+    const normalizedLink = normalizeUrlForComparison(normalizePublicUrl(item.link));
     return `link:${normalizedLink}`;
   }
 
@@ -44,15 +98,13 @@ function generateItemId(item: RSSItem, feedType: FeedType): string {
 }
 
 /**
- * Normalize URL for comparison
+ * Normalize URL for comparison (lowercase hostname, remove trailing slash)
  */
-function normalizeUrl(url: string): string {
+function normalizeUrlForComparison(url: string): string {
   try {
     const parsed = new URL(url);
-    // Remove trailing slashes, convert to lowercase hostname
     parsed.hostname = parsed.hostname.toLowerCase();
     let normalized = parsed.toString();
-    // Remove trailing slash if present (unless it's just the root)
     if (normalized.endsWith('/') && parsed.pathname !== '/') {
       normalized = normalized.slice(0, -1);
     }
@@ -63,24 +115,41 @@ function normalizeUrl(url: string): string {
 }
 
 /**
- * Ensure URL uses HTTPS if possible
+ * Extract content from RSS item for thread generation
  */
-function ensureHttps(url: string): string {
-  if (url.startsWith('http://')) {
-    return url.replace('http://', 'https://');
+function extractContent(item: RSSItem): string | null {
+  // Prefer content:encoded (full HTML content)
+  if (item['content:encoded'] && item['content:encoded'].trim()) {
+    return item['content:encoded'];
   }
-  return url;
+
+  // Then try content
+  if (item.content && item.content.trim()) {
+    return item.content;
+  }
+
+  // Then description
+  if (item.description && item.description.trim()) {
+    return item.description;
+  }
+
+  // Then contentSnippet (plain text)
+  if (item.contentSnippet && item.contentSnippet.trim()) {
+    return item.contentSnippet;
+  }
+
+  return null;
 }
 
 /**
  * Parse a single feed and return normalized items
  */
-async function parseFeed(feedUrl: string, feedType: FeedType): Promise<FeedItem[]> {
+async function parseFeed(feedUrl: string, feedType: FeedType): Promise<FeedItemExtended[]> {
   logger.info(`Fetching feed: ${feedType}`, { url: feedUrl });
 
   try {
     const feed = await parser.parseURL(feedUrl);
-    const items: FeedItem[] = [];
+    const items: FeedItemExtended[] = [];
 
     for (const item of feed.items || []) {
       // Skip items without title or link
@@ -93,13 +162,19 @@ async function parseFeed(feedUrl: string, feedType: FeedType): Promise<FeedItem[
         continue;
       }
 
-      const id = generateItemId(item, feedType);
-      const feedItem: FeedItem = {
+      // Normalize URLs (replace localhost, ensure HTTPS)
+      const normalizedLink = normalizePublicUrl(item.link.trim());
+
+      const id = generateItemId(item as RSSItem, feedType);
+      const content = extractContent(item as RSSItem);
+
+      const feedItem: FeedItemExtended = {
         id,
         feed: feedType,
         title: item.title.trim(),
-        link: ensureHttps(item.link.trim()),
+        link: normalizedLink,
         pubDate: item.isoDate || item.pubDate || null,
+        content: content,
       };
 
       items.push(feedItem);
@@ -160,6 +235,7 @@ export async function pollFeeds(): Promise<{ newsroomNew: number; latestNew: num
     logger.info('Queued new item from NEWSROOM', {
       id: item.id,
       title: item.title.slice(0, 50),
+      link: item.link,
     });
   }
 
@@ -173,7 +249,7 @@ export async function pollFeeds(): Promise<{ newsroomNew: number; latestNew: num
 
     // Cross-feed deduplication: skip if same item in NEWSROOM
     // Check by link (normalized) since ID might differ between feeds
-    const normalizedLink = normalizeUrl(item.link);
+    const normalizedLink = normalizeUrlForComparison(item.link);
     const linkId = `link:${normalizedLink}`;
 
     if (newsroomItemIds.has(linkId) || seenIds.has(item.id)) {
@@ -206,6 +282,7 @@ export async function pollFeeds(): Promise<{ newsroomNew: number; latestNew: num
     logger.info('Queued new item from LATEST', {
       id: item.id,
       title: item.title.slice(0, 50),
+      link: item.link,
     });
   }
 

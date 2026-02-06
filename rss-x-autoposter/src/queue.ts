@@ -1,17 +1,19 @@
 import { config } from './config.js';
 import { logger } from './logger.js';
 import {
-  FeedItem,
+  FeedItemExtended,
   QueueItem,
   getNextQueuedItem,
+  peekNextQueuedItem,
   updateQueueItem,
   markItemPosted,
   getQueueStats,
+  getLastStoryPostedAt,
 } from './db.js';
-import { formatTweet, validateTweet, previewTweet } from './formatter.js';
-import { postTweet } from './xClient.js';
+import { buildTweets, validateThread, previewThread } from './threadFormatter.js';
+import { postThread } from './xClient.js';
 
-// Track last post time for rate limiting
+// Track last post time for rate limiting within session
 let lastPostTime: Date | null = null;
 let lastPostError: string | null = null;
 
@@ -27,13 +29,36 @@ export function getLastPostError(): string | null {
  * Calculate exponential backoff delay
  */
 function calculateBackoff(attempts: number): number {
-  // Base delay: 60 seconds, doubles each attempt, max 30 minutes
   const baseDelay = 60;
   const maxDelay = 1800;
   const delay = Math.min(baseDelay * Math.pow(2, attempts), maxDelay);
-  // Add some jitter (±10%)
   const jitter = delay * 0.1 * (Math.random() * 2 - 1);
   return Math.round(delay + jitter);
+}
+
+/**
+ * Check global story throttle
+ * Returns null if posting is allowed, or the number of seconds to wait
+ */
+function checkGlobalThrottle(): number | null {
+  if (config.minTimeBetweenStoriesSec <= 0) {
+    return null; // Throttle disabled
+  }
+
+  const lastStoryPosted = getLastStoryPostedAt();
+
+  if (!lastStoryPosted) {
+    return null; // No previous posts, allow immediately
+  }
+
+  const timeSinceLastStory = (Date.now() - lastStoryPosted.getTime()) / 1000;
+  const waitTime = config.minTimeBetweenStoriesSec - timeSinceLastStory;
+
+  if (waitTime <= 0) {
+    return null; // Throttle period passed
+  }
+
+  return Math.ceil(waitTime);
 }
 
 /**
@@ -41,7 +66,33 @@ function calculateBackoff(attempts: number): number {
  * Returns true if an item was processed, false if queue is empty or waiting
  */
 export async function processNextQueueItem(): Promise<boolean> {
-  // Check rate limit (minimum delay between posts)
+  // Check global story throttle first
+  const throttleWait = checkGlobalThrottle();
+  if (throttleWait !== null) {
+    // Peek at next item to schedule it for later
+    const nextItem = peekNextQueuedItem();
+    if (nextItem) {
+      const nextAttemptAt = new Date(Date.now() + throttleWait * 1000);
+
+      // Only update if the item isn't already scheduled further out
+      const currentNextAttempt = nextItem.nextAttemptAt ? new Date(nextItem.nextAttemptAt) : null;
+      if (!currentNextAttempt || currentNextAttempt < nextAttemptAt) {
+        updateQueueItem(nextItem.id, {
+          nextAttemptAt: nextAttemptAt.toISOString(),
+        });
+
+        logger.info('Hourly throttle active, delaying item', {
+          id: nextItem.id,
+          waitSeconds: throttleWait,
+          nextAttemptAt: nextAttemptAt.toISOString(),
+          lastPosted: getLastStoryPostedAt()?.toISOString(),
+        });
+      }
+    }
+    return false;
+  }
+
+  // Check session rate limit (minimum delay between posts)
   if (lastPostTime) {
     const timeSinceLastPost = (Date.now() - lastPostTime.getTime()) / 1000;
     if (timeSinceLastPost < config.minDelayBetweenPostsSec) {
@@ -60,9 +111,9 @@ export async function processNextQueueItem(): Promise<boolean> {
   logger.info('Processing queue item', { id: queueItem.id, attempts: queueItem.attempts });
 
   // Parse the payload
-  let feedItem: FeedItem;
+  let feedItem: FeedItemExtended;
   try {
-    feedItem = JSON.parse(queueItem.payloadJson) as FeedItem;
+    feedItem = JSON.parse(queueItem.payloadJson) as FeedItemExtended;
   } catch (error) {
     logger.error('Failed to parse queue item payload', { id: queueItem.id });
     updateQueueItem(queueItem.id, {
@@ -72,12 +123,12 @@ export async function processNextQueueItem(): Promise<boolean> {
     return true;
   }
 
-  // Format the tweet
-  const tweetText = formatTweet(feedItem);
-  const validation = validateTweet(tweetText);
+  // Build tweets based on thread mode
+  const tweets = buildTweets(feedItem);
+  const validation = validateThread(tweets);
 
   if (!validation.valid) {
-    logger.error('Invalid tweet format', { id: queueItem.id, error: validation.error });
+    logger.error('Invalid tweet/thread format', { id: queueItem.id, error: validation.error });
     updateQueueItem(queueItem.id, {
       status: 'failed',
       errorMessage: validation.error || 'Invalid tweet',
@@ -87,14 +138,14 @@ export async function processNextQueueItem(): Promise<boolean> {
 
   // Log preview in dry run mode
   if (config.dryRun) {
-    logger.info(previewTweet(feedItem));
+    logger.info(previewThread(feedItem, tweets));
   }
 
   // Mark as posting
   updateQueueItem(queueItem.id, { status: 'posting' });
 
-  // Post the tweet
-  const result = await postTweet(tweetText);
+  // Post the thread (or single tweet)
+  const result = await postThread(tweets);
 
   if (result.success) {
     // Success! Mark as posted
@@ -110,13 +161,15 @@ export async function processNextQueueItem(): Promise<boolean> {
       link: feedItem.link,
       pubDate: feedItem.pubDate,
       tweetedAt: lastPostTime.toISOString(),
-      tweetId: result.tweetId || null,
+      tweetId: result.rootTweetId || null,
     });
 
-    logger.info('Successfully posted tweet', {
+    logger.info('Successfully posted', {
       id: queueItem.id,
-      tweetId: result.tweetId,
+      rootTweetId: result.rootTweetId,
+      tweetCount: result.tweetIds?.length || 1,
       title: feedItem.title.slice(0, 50),
+      threadMode: config.threadMode,
     });
 
     return true;
@@ -125,6 +178,23 @@ export async function processNextQueueItem(): Promise<boolean> {
   // Handle failure
   lastPostError = result.error || 'Unknown error';
   const newAttempts = queueItem.attempts + 1;
+
+  // If we got partial tweets, log them for debugging
+  if (result.partialTweetIds && result.partialTweetIds.length > 0) {
+    logger.warn('Thread partially posted before failure', {
+      id: queueItem.id,
+      partialTweetIds: result.partialTweetIds,
+      rootTweetId: result.rootTweetId,
+    });
+    // Mark as failed to avoid duplicate partial threads
+    // User can manually delete partial thread and reset if needed
+    updateQueueItem(queueItem.id, {
+      status: 'failed',
+      attempts: newAttempts,
+      errorMessage: `Partial thread failure: ${result.error}. Posted ${result.partialTweetIds.length}/${tweets.length} tweets. Root: ${result.rootTweetId}`,
+    });
+    return true;
+  }
 
   // Check if max retries exceeded
   if (newAttempts >= config.maxRetries) {
@@ -153,7 +223,7 @@ export async function processNextQueueItem(): Promise<boolean> {
 
   const nextAttempt = new Date(Date.now() + backoffSeconds * 1000);
 
-  logger.warn('Tweet failed, scheduling retry', {
+  logger.warn('Post failed, scheduling retry', {
     id: queueItem.id,
     attempts: newAttempts,
     nextAttempt: nextAttempt.toISOString(),
@@ -162,7 +232,7 @@ export async function processNextQueueItem(): Promise<boolean> {
   });
 
   updateQueueItem(queueItem.id, {
-    status: 'queued', // Back to queued for retry
+    status: 'queued',
     attempts: newAttempts,
     nextAttemptAt: nextAttempt.toISOString(),
     errorMessage: result.error || null,
@@ -176,8 +246,6 @@ export async function processNextQueueItem(): Promise<boolean> {
  */
 export async function processQueue(): Promise<number> {
   let processed = 0;
-
-  // Process up to a reasonable limit to prevent infinite loops
   const maxIterations = 10;
 
   for (let i = 0; i < maxIterations; i++) {
