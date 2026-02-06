@@ -1,0 +1,33 @@
+[Unit]
+Description=RSS to X Autoposter Service
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/rss-x-autoposter
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rss-x-autoposter
+
+# Environment
+Environment=NODE_ENV=production
+EnvironmentFile=/home/ubuntu/rss-x-autoposter/.env
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/ubuntu/rss-x-autoposter/data
+PrivateTmp=true
+
+# Resource limits
+MemoryMax=256M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

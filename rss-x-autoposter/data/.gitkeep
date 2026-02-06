@@ -1,0 +1,2 @@
+# This file ensures the data directory exists in git
+# Database and logs will be stored here

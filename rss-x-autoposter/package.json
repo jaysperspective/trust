@@ -1,0 +1,44 @@
+{
+  "name": "rss-x-autoposter",
+  "version": "1.0.0",
+  "description": "Production-ready RSS to X (Twitter) autoposter service",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "dry-run": "DRY_RUN=true tsx src/index.ts",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "rss",
+    "twitter",
+    "x",
+    "autoposter",
+    "bot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.3.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "rss-parser": "^3.13.0",
+    "twitter-api-v2": "^1.17.2",
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.4",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}
