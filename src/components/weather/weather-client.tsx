@@ -115,6 +115,7 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
   }, [data])
 
   const moonPhase = data?.astronomy?.daily?.moon_phase?.[0]
+  const moonSign = data?.tropicalConfig?.find(p => p.body === 'Moon')
 
   return (
     <div className="space-y-6">
@@ -164,6 +165,11 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
               <p className="text-lg font-semibold text-[var(--text-primary)]">
                 {moonPhase !== undefined ? moonPhaseName(moonPhase) : 'Unavailable'}
               </p>
+              {moonSign && (
+                <p className="text-meta text-sm">
+                  {moonSign.sign} {moonSign.degree.toFixed(0)}°
+                </p>
+              )}
             </div>
           </div>
 

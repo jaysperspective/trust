@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const DEFAULT_ZIP = '10001'
 const WEATHER_TIMEZONE = process.env.NEWS_TIMEZONE || 'America/New_York'
+const ASTRO_SERVICE_URL = process.env.ASTRO_SERVICE_URL || 'http://127.0.0.1:3002'
+
+const ZODIAC_SIGNS = [
+  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
+  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
+]
+
+function lonToZodiac(lon: number) {
+  const signIndex = Math.floor(lon / 30) % 12
+  return { sign: ZODIAC_SIGNS[signIndex], degree: lon % 30 }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -68,6 +79,43 @@ async function fetchSpaceWeather() {
   return Array.isArray(alerts) ? alerts.slice(0, 5) : []
 }
 
+async function fetchTropicalPositions(lat: number, lon: number) {
+  const now = new Date()
+  const res = await fetch(`${ASTRO_SERVICE_URL}/chart`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      year: now.getUTCFullYear(),
+      month: now.getUTCMonth() + 1,
+      day: now.getUTCDate(),
+      hour: now.getUTCHours(),
+      minute: now.getUTCMinutes(),
+      latitude: lat,
+      longitude: lon,
+    }),
+    cache: 'no-store',
+    signal: AbortSignal.timeout(5000),
+  })
+
+  if (!res.ok) throw new Error(`Astro service responded ${res.status}`)
+  const json = await res.json()
+  if (!json.ok || !json.data?.planets) throw new Error('Invalid astro service response')
+
+  const DISPLAY_BODIES: [string, string][] = [
+    ['sun', 'Sun'], ['moon', 'Moon'], ['mercury', 'Mercury'],
+    ['venus', 'Venus'], ['mars', 'Mars'], ['jupiter', 'Jupiter'],
+    ['saturn', 'Saturn'], ['uranus', 'Uranus'], ['neptune', 'Neptune'],
+    ['pluto', 'Pluto'], ['chiron', 'Chiron'], ['northNode', 'North Node'],
+  ]
+
+  return DISPLAY_BODIES
+    .filter(([key]) => json.data.planets[key])
+    .map(([key, label]) => {
+      const { sign, degree } = lonToZodiac(json.data.planets[key].lon)
+      return { body: label, sign, degree }
+    })
+}
+
 async function fetchWeatherNews() {
   const res = await fetch('https://api.weather.gov/alerts/active', { cache: 'no-store' })
   if (!res.ok) throw new Error(`Weather news fetch failed (status ${res.status})`)
@@ -103,11 +151,16 @@ export async function GET(request: NextRequest) {
       console.error('Weather news fetch failed', err)
       return []
     })
+    const astroPromise = fetchTropicalPositions(location.latitude, location.longitude).catch((err) => {
+      console.error('Astro service fetch failed', err)
+      return null
+    })
 
-    const [weather, astronomy, weatherNews] = await Promise.all([
+    const [weather, astronomy, weatherNews, tropicalConfig] = await Promise.all([
       weatherPromise,
       astronomyPromise,
-      newsPromise
+      newsPromise,
+      astroPromise
     ])
 
     const batchTime = new Date()
@@ -118,7 +171,7 @@ export async function GET(request: NextRequest) {
       daily: weather.daily,
       astronomy,
       weatherNews,
-      tropicalConfig: null,
+      tropicalConfig,
       batchTime,
       timezone: WEATHER_TIMEZONE,
     })
