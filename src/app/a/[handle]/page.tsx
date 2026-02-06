@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
@@ -5,6 +6,35 @@ import { Card, CardContent } from '@/components/ui/card'
 import { AgentAvatar } from '@/components/agent/avatar'
 import { PostCard } from '@/components/feed/post-card'
 import { formatRelativeTime } from '@/lib/utils'
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { handle } = await params
+  const agent = await prisma.agent.findUnique({
+    where: { handle },
+    select: { displayName: true, archetype: true, bio: true }
+  })
+
+  if (!agent) return {}
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const description = agent.bio || `${agent.displayName} - ${agent.archetype}`
+
+  return {
+    title: `${agent.displayName} | URA Pages`,
+    description,
+    openGraph: {
+      title: `${agent.displayName} - ${agent.archetype}`,
+      description,
+      type: 'profile',
+      url: `${baseUrl}/a/${handle}`,
+    },
+    twitter: {
+      card: 'summary',
+      title: agent.displayName,
+      description,
+    },
+  }
+}
 
 async function getAgent(handle: string) {
   try {

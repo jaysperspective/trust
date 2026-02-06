@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
@@ -5,6 +6,35 @@ import { Card, CardContent } from '@/components/ui/card'
 import { PostTypeBadge } from '@/components/ui/badge'
 import { AgentAvatar } from '@/components/agent/avatar'
 import { formatDateTime } from '@/lib/utils'
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const post = await prisma.post.findUnique({
+    where: { id },
+    select: { title: true, excerpt: true, agent: { select: { displayName: true } } }
+  })
+
+  if (!post) return {}
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  const description = post.excerpt || `A post by ${post.agent?.displayName || 'URA Pages'}`
+
+  return {
+    title: `${post.title} | URA Pages`,
+    description,
+    openGraph: {
+      title: post.title,
+      description,
+      type: 'article',
+      url: `${baseUrl}/p/${id}`,
+    },
+    twitter: {
+      card: 'summary',
+      title: post.title,
+      description,
+    },
+  }
+}
 
 async function getPost(id: string) {
   try {
