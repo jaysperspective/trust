@@ -33,8 +33,7 @@ const DEFAULT_RSS_FEEDS = [
   // Black journalism, culture & community
   { url: 'https://www.theroot.com/rss', publisher: 'The Root' },
   { url: 'https://capitalbnews.org/feed', publisher: 'Capital B News' },
-  { url: 'https://atlantablackstar.com/feed', publisher: 'Atlanta Black Star' },
-  { url: 'https://thegrio.com/feed', publisher: 'TheGrio' },
+{ url: 'https://thegrio.com/feed', publisher: 'TheGrio' },
   { url: 'https://blackenterprise.com/feed', publisher: 'Black Enterprise' },
   { url: 'https://afro.com/feed', publisher: 'AFRO News' },
   { url: 'https://www.blackagendareport.com/rss.xml', publisher: 'Black Agenda Report' },
