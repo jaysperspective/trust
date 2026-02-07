@@ -44,6 +44,14 @@ const DEFAULT_RSS_FEEDS = [
   { url: 'https://www.nasa.gov/news-release/feed/', publisher: 'NASA' },
   { url: 'https://feeds.arstechnica.com/arstechnica/science', publisher: 'Ars Technica' },
 
+  // News & politics
+  { url: 'https://www.huffpost.com/section/us-news/feed', publisher: 'HuffPost' },
+  { url: 'https://www.huffpost.com/voices/black-voices/feed', publisher: 'HuffPost Black Voices' },
+  { url: 'https://www.politico.com/rss/politicopicks.xml', publisher: 'Politico' },
+
+  // Podcasts
+  { url: 'https://feeds.simplecast.com/54nAGcIl', publisher: 'The Daily (NYT)' },
+
   // Global wire (kept for depth)
   { url: 'https://www.theguardian.com/world/rss', publisher: 'The Guardian' },
   { url: 'https://feeds.npr.org/1001/rss.xml', publisher: 'NPR' },

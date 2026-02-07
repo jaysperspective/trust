@@ -3,8 +3,9 @@ import { RSSProvider } from '@/lib/sources/rss'
 import { getNewsConfig } from './config'
 
 export const NEWS_SLOTS = {
-  morning:   { hour: 11, label: 'Morning Edition / 11 AM',   slot: 'morning'   },
-  afternoon: { hour: 16, label: 'Afternoon Edition / 4 PM',  slot: 'afternoon' },
+  morning:   { hour: 7,  label: 'Morning Edition / 7 AM',    slot: 'morning'   },
+  midday:    { hour: 13, label: 'Midday Edition / 1 PM',     slot: 'midday'    },
+  afternoon: { hour: 17, label: 'Afternoon Edition / 5 PM',  slot: 'afternoon' },
   evening:   { hour: 22, label: 'Evening Edition / 10 PM',   slot: 'evening'   },
 } as const
 
@@ -25,7 +26,7 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
   // Fetch recent stories (already filtered to last 7 days, sorted newest first)
   const allItems = await provider.fetchAll(200)
 
-  // Deduplicate against what's already in the database, then cap at 13
+  // Deduplicate against what's already in the database, then cap at limit
   let stored = 0
   let duplicates = 0
   let skippedByCap = 0

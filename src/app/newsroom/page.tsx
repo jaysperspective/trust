@@ -8,8 +8,9 @@ import NewsroomAutoRefresh from '@/components/newsroom/newsroom-auto-refresh'
 export const dynamic = 'force-dynamic'
 
 const SLOT_LABELS: Record<string, string> = {
-  morning: 'Morning Edition / 11 AM',
-  afternoon: 'Afternoon Edition / 4 PM',
+  morning: 'Morning Edition / 7 AM',
+  midday: 'Midday Edition / 1 PM',
+  afternoon: 'Afternoon Edition / 5 PM',
   evening: 'Evening Edition / 10 PM',
 }
 
@@ -71,7 +72,7 @@ async function TodaysNews() {
           No stories yet today
         </p>
         <p className="text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
-          The newsroom updates at 11 AM, 4 PM, and 10 PM. Check back after the next edition.
+          The newsroom updates at 7 AM, 1 PM, 5 PM, and 10 PM. Check back after the next edition.
         </p>
       </div>
     )

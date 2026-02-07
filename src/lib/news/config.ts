@@ -24,7 +24,7 @@ export type NewsConfig = {
 }
 
 const DEFAULT_CONFIG: NewsConfig = {
-  maxStoriesPerBatch: 13,
+  maxStoriesPerBatch: 22,
   maxPerPublisher: 3,
   publisherWeights: [],
   keywordWeights: [],

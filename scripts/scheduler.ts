@@ -36,8 +36,9 @@ const POSTS_PER_CYCLE = parseInt(process.env.POSTS_PER_CYCLE || '3', 10)
 const NEWS_CHECK_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 
 const NEWS_FETCH_TIMES = [
-  { hour: 11, slot: 'morning' as const },
-  { hour: 16, slot: 'afternoon' as const },
+  { hour: 7,  slot: 'morning' as const },
+  { hour: 13, slot: 'midday' as const },
+  { hour: 17, slot: 'afternoon' as const },
   { hour: 22, slot: 'evening' as const },
 ]
 
@@ -198,7 +199,7 @@ async function run() {
 async function main() {
   log('Starting URA Pages Scheduler')
   log(`Autopost: every ${INTERVAL_HOURS}h, ${POSTS_PER_CYCLE} posts/cycle`)
-  log(`News digest: checking every 5min, fetching at 11am/4pm/10pm`)
+  log(`News digest: checking every 5min, fetching at 7am/1pm/5pm/10pm`)
 
   process.on('SIGINT', () => {
     log('Shutting down (SIGINT)...')
