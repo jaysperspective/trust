@@ -12,6 +12,7 @@ const DEFAULT_RSS_FEEDS = [
   { url: 'https://tirreab.substack.com/feed', publisher: 'Tirrea B' },
   { url: 'https://laurengrubaughthomas.substack.com/feed', publisher: 'Lauren Grubaugh Thomas' },
   { url: 'https://healthyfutures.substack.com/feed', publisher: 'Healthy Futures' },
+  { url: 'https://shedrinkswater.substack.com/feed', publisher: 'smoothie' },
 
   // Social science & research
   { url: 'https://www.pewresearch.org/feed', publisher: 'Pew Research Center' },
@@ -63,6 +64,7 @@ interface RSSItem {
   description: string
   pubDate?: string
   publisher: string
+  isSubstack: boolean
 }
 
 export class RSSProvider implements SourceProvider {
@@ -111,7 +113,8 @@ export class RSSProvider implements SourceProvider {
       snippet: this.cleanDescription(item.description),
       publisher: item.publisher,
       publishedAt: item.pubDate ? new Date(item.pubDate) : undefined,
-      sourceType: 'rss' as const
+      sourceType: 'rss' as const,
+      metadata: item.isSubstack ? { substack: true } : undefined
     }))
   }
 
@@ -147,8 +150,13 @@ export class RSSProvider implements SourceProvider {
       snippet: this.cleanDescription(item.description),
       publisher: item.publisher,
       publishedAt: item.pubDate ? new Date(item.pubDate) : undefined,
-      sourceType: 'rss' as const
+      sourceType: 'rss' as const,
+      metadata: item.isSubstack ? { substack: true } : undefined
     }))
+  }
+
+  private static isSubstackFeed(url: string): boolean {
+    return url.includes('.substack.com/')
   }
 
   private async fetchFeed(feed: { url: string; publisher: string }): Promise<RSSItem[]> {
@@ -165,14 +173,14 @@ export class RSSProvider implements SourceProvider {
       }
 
       const xml = await response.text()
-      return this.parseRSS(xml, feed.publisher)
+      return this.parseRSS(xml, feed.publisher, RSSProvider.isSubstackFeed(feed.url))
     } catch (error) {
       console.error(`RSS fetch error for ${feed.publisher}:`, error)
       return []
     }
   }
 
-  private parseRSS(xml: string, publisher: string): RSSItem[] {
+  private parseRSS(xml: string, publisher: string, isSubstack = false): RSSItem[] {
     const items: RSSItem[] = []
 
     // Simple regex-based XML parsing (works for most RSS feeds)
@@ -193,7 +201,8 @@ export class RSSProvider implements SourceProvider {
           link,
           description: description || '',
           pubDate,
-          publisher
+          publisher,
+          isSubstack
         })
       }
     }

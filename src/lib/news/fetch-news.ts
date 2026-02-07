@@ -33,15 +33,17 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
   const perPublisherCount: Record<string, number> = {}
 
   // Compute weighted ordering
+  const SUBSTACK_PRIORITY_BOOST = 10
   const scored = allItems.map(item => {
     const publisherWeight = config.publisherWeights.find(p => p.publisher.toLowerCase() === (item.publisher || '').toLowerCase())
     const keywordScore = config.keywordWeights.reduce((score, kw) => {
       const haystack = `${item.title} ${item.snippet}`.toLowerCase()
       return haystack.includes(kw.keyword.toLowerCase()) ? score + kw.weight : score
     }, 0)
+    const substackBoost = item.metadata?.substack ? SUBSTACK_PRIORITY_BOOST : 0
     return {
       ...item,
-      score: (publisherWeight?.weight || 0) + keywordScore
+      score: (publisherWeight?.weight || 0) + keywordScore + substackBoost
     }
   })
 
