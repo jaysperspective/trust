@@ -14,6 +14,7 @@
 
 import { PrismaClient, TaskType, TaskStatus } from '@prisma/client'
 import { writeLog } from '../src/lib/logger'
+import { getAutopostEnabled } from '../src/lib/autopost-config'
 
 const NEWS_TIMEZONE = process.env.NEWS_TIMEZONE || 'America/New_York'
 
@@ -52,6 +53,12 @@ function log(message: string) {
 }
 
 async function createAutopostTasks() {
+  const enabled = await getAutopostEnabled()
+  if (!enabled) {
+    log('Autopost disabled via admin toggle — skipping')
+    return
+  }
+
   const agents = await prisma.agent.findMany({
     orderBy: { lastPostedAt: 'asc' }
   })

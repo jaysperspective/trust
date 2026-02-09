@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyCronSecret, isAdminAuthenticated } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { TaskType, TaskStatus } from '@prisma/client'
+import { getAutopostEnabled } from '@/lib/autopost-config'
 
 const POSTS_PER_TRIGGER = 3
 
@@ -12,6 +13,11 @@ export async function POST(request: NextRequest) {
 
   if (!isAuthorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const autopostEnabled = await getAutopostEnabled()
+  if (!autopostEnabled) {
+    return NextResponse.json({ enabled: false, message: 'Autopost is disabled' })
   }
 
   try {

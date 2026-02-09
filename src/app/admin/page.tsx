@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { formatRelativeTime } from '@/lib/utils'
 import { AutopostButton } from './autopost-button'
 import { NewsDigestButton } from './news-digest-button'
+import { AutopostToggle } from './autopost-toggle'
 import { LogViewer } from './log-viewer'
 
 async function getStats() {
@@ -74,7 +75,8 @@ export default async function AdminDashboard() {
           <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
             Dashboard
           </h1>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3">
+            <AutopostToggle />
             <Link href="/admin/roundtables/new">
               <Button>New Roundtable</Button>
             </Link>
