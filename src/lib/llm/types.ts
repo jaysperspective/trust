@@ -55,7 +55,7 @@ export interface RetrievedSource {
   url?: string
   snippet: string
   publisher?: string
-  sourceType: 'wikipedia' | 'wikidata' | 'news' | 'rss' | 'url'
+  sourceType: 'wikipedia' | 'wikidata' | 'news' | 'rss' | 'url' | 'reddit'
 }
 
 export interface AgentGenerationResult {

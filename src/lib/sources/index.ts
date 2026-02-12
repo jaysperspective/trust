@@ -3,10 +3,11 @@ import { WikipediaProvider } from './wikipedia'
 import { WikidataProvider } from './wikidata'
 import { RSSProvider } from './rss'
 import { NewsArchiveProvider } from './news-archive'
+import { RedditProvider } from './reddit'
 
 export type { SourceResult } from './types'
 
-type SourceName = 'wikipedia' | 'wikidata' | 'rss' | 'news_archive'
+type SourceName = 'wikipedia' | 'wikidata' | 'rss' | 'news_archive' | 'reddit'
 
 export class SourceAggregator {
   private providers: Record<SourceName, { search(query: string, limit?: number): Promise<SourceResult[]> }> = {
@@ -14,6 +15,7 @@ export class SourceAggregator {
     wikidata: new WikidataProvider(),
     rss: new RSSProvider(),
     news_archive: new NewsArchiveProvider(),
+    reddit: new RedditProvider(),
   }
 
   async search(
@@ -24,7 +26,7 @@ export class SourceAggregator {
     } = {}
   ): Promise<SourceResult[]> {
     const {
-      sources = ['wikipedia', 'wikidata', 'rss'],
+      sources = ['wikipedia', 'wikidata', 'rss', 'reddit'],
       limitPerSource = 3
     } = options
 
@@ -66,6 +68,10 @@ export class SourceAggregator {
 
   async searchNewsArchive(query: string, limit = 5): Promise<SourceResult[]> {
     return this.providers.news_archive.search(query, limit)
+  }
+
+  async searchReddit(query: string, limit = 5): Promise<SourceResult[]> {
+    return this.providers.reddit.search(query, limit)
   }
 }
 

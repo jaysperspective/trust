@@ -76,6 +76,7 @@ enum SourceType {
   news_api
   dataset
   rss
+  reddit
 }
 
 enum MoonSign {

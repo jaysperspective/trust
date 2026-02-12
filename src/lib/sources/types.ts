@@ -5,7 +5,7 @@ export interface SourceResult {
   publisher?: string
   author?: string
   publishedAt?: Date
-  sourceType: 'wikipedia' | 'wikidata' | 'news' | 'rss' | 'url'
+  sourceType: 'wikipedia' | 'wikidata' | 'news' | 'rss' | 'url' | 'reddit'
   metadata?: Record<string, unknown>
 }
 
