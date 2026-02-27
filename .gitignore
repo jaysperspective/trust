@@ -45,3 +45,6 @@ next-env.d.ts
 
 # logs
 /logs/
+
+# large binaries (host externally)
+/public/downloads/*.zip
