@@ -47,8 +47,9 @@ const securitySteps = [
 function DownloadButton({ label }: { label: string }) {
   return (
     <a
-      href="/downloads/+downloads.zip"
-      download
+      href="https://drive.google.com/uc?export=download&id=1GaF3_oV88d7wcIa0VNIhSYmRDPTZzkfg"
+      target="_blank"
+      rel="noopener noreferrer"
       className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg font-mono font-semibold text-sm text-white bg-[#e05cb8] hover:bg-[#c94ea0] transition-colors duration-200"
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
