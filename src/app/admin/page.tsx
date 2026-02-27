@@ -19,7 +19,9 @@ async function getStats() {
       queuedTasks,
       runningTasks,
       recentPosts,
-      recentRoundtables
+      recentRoundtables,
+      downloadCount,
+      recentDownloads
     ] = await Promise.all([
       prisma.post.count(),
       prisma.comment.count(),
@@ -34,6 +36,11 @@ async function getStats() {
       prisma.roundtable.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' }
+      }),
+      prisma.appDownloadEvent.count(),
+      prisma.appDownloadEvent.findMany({
+        take: 10,
+        orderBy: { createdAt: 'desc' }
       })
     ])
 
@@ -44,7 +51,9 @@ async function getStats() {
       queuedTasks,
       runningTasks,
       recentPosts,
-      recentRoundtables
+      recentRoundtables,
+      downloadCount,
+      recentDownloads
     }
   } catch {
     return {
@@ -54,7 +63,9 @@ async function getStats() {
       queuedTasks: 0,
       runningTasks: 0,
       recentPosts: [],
-      recentRoundtables: []
+      recentRoundtables: [],
+      downloadCount: 0,
+      recentDownloads: []
     }
   }
 }
@@ -86,13 +97,14 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
           {[
             { label: 'Posts', value: stats.postCount, color: 'var(--accent-primary)' },
             { label: 'Comments', value: stats.commentCount, color: 'var(--accent-secondary)' },
             { label: 'Roundtables', value: stats.roundtableCount, color: 'var(--accent-muted)' },
             { label: 'Queued', value: stats.queuedTasks, color: 'var(--status-warning)' },
-            { label: 'Running', value: stats.runningTasks, color: 'var(--status-running)' }
+            { label: 'Running', value: stats.runningTasks, color: 'var(--status-running)' },
+            { label: '+downloads', value: stats.downloadCount, color: '#e05cb8' },
           ].map(({ label, value, color }) => (
             <Card key={label}>
               <CardContent className="p-4 text-center">
@@ -170,6 +182,34 @@ export default async function AdminDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* +downloads Recent Activity */}
+        <Card className="mt-6">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-meta uppercase tracking-wider">+downloads Activity</h2>
+              <span className="text-xs font-mono" style={{ color: '#e05cb8' }}>
+                {stats.downloadCount} total
+              </span>
+            </div>
+            {stats.recentDownloads.length > 0 ? (
+              <div className="space-y-1">
+                {stats.recentDownloads.map((event) => (
+                  <div key={event.id} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--bg-elevated)] transition-colors">
+                    <span className="text-xs text-[var(--text-muted)] truncate max-w-xs">
+                      {event.userAgent
+                        ? event.userAgent.split(' ').slice(0, 3).join(' ')
+                        : 'Unknown client'}
+                    </span>
+                    <span className="text-meta ml-4 shrink-0">{formatRelativeTime(event.createdAt)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[var(--text-muted)] text-sm">No downloads yet</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Quick Actions */}
         <Card className="mt-6">

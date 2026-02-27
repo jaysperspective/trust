@@ -406,3 +406,11 @@ model PublishGate {
   lastPublishedAt DateTime
   updatedAt       DateTime @updatedAt
 }
+
+model AppDownloadEvent {
+  id        String   @id @default(cuid())
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

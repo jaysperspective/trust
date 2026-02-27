@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
+import { DownloadButton } from '@/components/downloads/download-button'
 
 export const metadata: Metadata = {
   title: '+downloads | URA Pages',
@@ -43,22 +44,6 @@ const securitySteps = [
   'Scroll to the Security section and click Open Anyway',
   'Confirm by clicking Open in the next dialog',
 ]
-
-function DownloadButton({ label }: { label: string }) {
-  return (
-    <a
-      href="https://drive.google.com/uc?export=download&id=1GaF3_oV88d7wcIa0VNIhSYmRDPTZzkfg"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-lg font-mono font-semibold text-sm text-white bg-[#e05cb8] hover:bg-[#c94ea0] transition-colors duration-200"
-    >
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8 1v9M4 7l4 4 4-4M2 13h12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-      {label}
-    </a>
-  )
-}
 
 export default function DownloadsAppPage() {
   return (
