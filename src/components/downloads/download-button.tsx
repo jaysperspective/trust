@@ -1,6 +1,6 @@
 'use client'
 
-const DRIVE_URL = 'https://drive.google.com/uc?export=download&id=13zIr2bttFZ8wvcSbMelvKfbpacNEf0zR'
+const DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1RNmBKUHNBN5wD6whRjyzSV0d-_W1r-qs'
 
 export function DownloadButton({ label }: { label: string }) {
   async function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
