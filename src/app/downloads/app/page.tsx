@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
+import Link from 'next/link'
 import { DownloadButton } from '@/components/downloads/download-button'
 
 export const metadata: Metadata = {
@@ -7,23 +8,13 @@ export const metadata: Metadata = {
   description: 'A local media downloader for YouTube, SoundCloud, Spotify, and Apple Music — runs entirely on your Mac.',
 }
 
+const DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1RNmBKUHNBN5wD6whRjyzSV0d-_W1r-qs'
+
 const features = [
-  {
-    label: 'YouTube',
-    desc: 'Video or playlist — MP4 or MP3',
-  },
-  {
-    label: 'SoundCloud',
-    desc: 'Track or playlist — M4A or MP3',
-  },
-  {
-    label: 'Spotify',
-    desc: 'Track, album, or playlist — matched to YouTube and saved as MP3',
-  },
-  {
-    label: 'Apple Music',
-    desc: 'Track or album — matched to YouTube with metadata embedded',
-  },
+  { label: 'YouTube', desc: 'Video or playlist — MP4 or MP3' },
+  { label: 'SoundCloud', desc: 'Track or playlist — M4A or MP3' },
+  { label: 'Spotify', desc: 'Track, album, or playlist — matched to YouTube and saved as MP3' },
+  { label: 'Apple Music', desc: 'Track or album — matched to YouTube with metadata embedded' },
 ]
 
 const screenshots = [
@@ -49,8 +40,23 @@ export default function DownloadsAppPage() {
   return (
     <div className="min-h-screen bg-[var(--bg-base)]">
 
+      {/* Back link */}
+      <div className="container-page pt-8">
+        <div className="max-w-2xl mx-auto">
+          <Link
+            href="/downloads"
+            className="inline-flex items-center gap-1.5 text-xs font-mono text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors duration-150"
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            All Apps
+          </Link>
+        </div>
+      </div>
+
       {/* Hero */}
-      <section className="container-page pt-16 pb-12">
+      <section className="container-page pt-8 pb-12">
         <div className="max-w-2xl mx-auto flex flex-col items-center text-center gap-6">
           <Image
             src="/downloads/downloadsicon.png"
@@ -69,7 +75,7 @@ export default function DownloadsAppPage() {
             A local media downloader for YouTube, SoundCloud, Spotify, and Apple Music. Runs entirely on your Mac — no account, no subscription.
           </p>
 
-          <DownloadButton label="Download for Mac" />
+          <DownloadButton label="Download for Mac" url={DRIVE_URL} />
 
           <p className="text-xs text-[var(--text-muted)]">Free · No sign-in required</p>
         </div>
@@ -147,7 +153,7 @@ export default function DownloadsAppPage() {
       {/* Bottom CTA */}
       <section className="container-page py-16 border-t border-[var(--border-subtle)]">
         <div className="max-w-2xl mx-auto flex flex-col items-center gap-4">
-          <DownloadButton label="Download +downloads" />
+          <DownloadButton label="Download +downloads" url={DRIVE_URL} />
           <p className="text-xs text-[var(--text-muted)]">macOS · Free · No account needed</p>
         </div>
       </section>
