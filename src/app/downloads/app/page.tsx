@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'A local media downloader for YouTube, SoundCloud, Spotify, and Apple Music — runs entirely on your Mac.',
 }
 
-const DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1RNmBKUHNBN5wD6whRjyzSV0d-_W1r-qs'
+const DRIVE_URL = 'https://drive.google.com/file/d/1_I_x5lxpCOP-8MfllrwnZ-8JdcXM6Y2T/view?usp=share_link'
 
 const features = [
   { label: 'YouTube', desc: 'Video or playlist — MP4 or MP3' },
