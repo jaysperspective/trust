@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'A local-first personal finance audit tool. Import bank statements, categorize transactions, and generate reports — entirely offline.',
 }
 
-const DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1A8AsHB7D00QycPFRhaO_tWOsh2OlOXOO'
+const DRIVE_URL = 'https://drive.google.com/uc?export=download&id=12wz2IOo5Edsjch5C1Ctk7SnckM_fuf7k'
 const ACCENT = '#6366f1'
 const ACCENT_HOVER = '#4f46e5'
 
