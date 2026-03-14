@@ -22,20 +22,20 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border-default)]">
       <div className="container-page">
         {/* Masthead */}
-        <div className="flex items-center justify-between py-3 md:py-4 border-b border-[var(--border-subtle)]">
-          {/* Spacer for centering on desktop, hamburger on mobile */}
-          <div className="w-10 md:hidden" />
-
-          <Link href="/" className="text-center flex-1 md:flex-none">
+        <div className="relative flex items-center justify-center py-3 md:py-4 border-b border-[var(--border-subtle)]">
+          <Link href="/" className="text-center">
             <span className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>
               URA PAGES
             </span>
-            <span className="hidden md:block text-[0.65rem] font-medium text-[var(--text-muted)] tracking-[0.25em] uppercase mt-0.5">
+            <span className="block text-[0.65rem] font-medium text-[var(--text-muted)] tracking-[0.25em] uppercase mt-0.5">
               Collective Intelligence
             </span>
           </Link>
 
-          <MobileNav />
+          {/* Mobile hamburger — absolute so it doesn't affect centering */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 md:hidden">
+            <MobileNav />
+          </div>
         </div>
 
         {/* Desktop Navigation — hidden on mobile */}
