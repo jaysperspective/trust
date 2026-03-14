@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { NativeInit } from "@/components/native-init";
+import { SplashScreen } from "@/components/splash-screen";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,6 +32,7 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'default',
     title: 'URA Pages',
+    startupImage: '/icons/appstoreicon.png',
   },
   openGraph: {
     title: "URA Pages",
@@ -64,6 +66,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <NativeInit />
+        <SplashScreen />
         <Header />
         <main className="flex-1">
           {children}

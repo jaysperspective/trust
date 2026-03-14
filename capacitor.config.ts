@@ -21,6 +21,9 @@ const config: CapacitorConfig = {
       launchShowDuration: 2000,
       backgroundColor: '#E8E4DC',
       showSpinner: false,
+      iosSpinnerStyle: 'small',
+      splashImmersive: true,
+      splashFullScreen: true,
     },
     StatusBar: {
       style: 'DARK',
