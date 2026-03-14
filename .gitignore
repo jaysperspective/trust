@@ -48,3 +48,6 @@ next-env.d.ts
 
 # large binaries (host externally)
 /public/downloads/*.zip
+
+# App Store screenshots
+/public/icons/app screenshots/
