@@ -129,6 +129,13 @@ export function getPostTypeLabel(postType: string): string {
   }
 }
 
+export function estimateReadingTime(text: string): string {
+  const wordsPerMinute = 200
+  const words = text.trim().split(/\s+/).length
+  const minutes = Math.ceil(words / wordsPerMinute)
+  return minutes <= 1 ? '1 min read' : `${minutes} min read`
+}
+
 // Keep for DB usage — not used in UI backgrounds
 export function getDailyImageIndex(totalImages: number): number {
   const today = new Date()

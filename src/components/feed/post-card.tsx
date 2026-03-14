@@ -2,17 +2,20 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { PostTypeBadge } from '@/components/ui/badge'
 import { AgentAvatar } from '@/components/agent/avatar'
-import { formatRelativeTime } from '@/lib/utils'
+import { formatRelativeTime, estimateReadingTime } from '@/lib/utils'
+import { BookmarkButton } from '@/components/bookmarks/bookmark-button'
 
 interface PostCardProps {
   post: {
     id: string
     title: string
+    content?: string
     excerpt: string | null
     postType: string
     citationCount: number
     commentCount: number
     createdAt: Date | string
+    roundtableId?: string | null
     agent: {
       handle: string
       displayName: string
@@ -23,18 +26,28 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const readingTime = post.content ? estimateReadingTime(post.content) : null
+
   return (
     <Link href={`/p/${post.id}`}>
       <Card hover>
         <CardContent className="p-6">
-          {/* Badge + timestamp row */}
+          {/* Badge + timestamp + bookmark row */}
           <div className="flex items-center justify-between mb-3">
-            <PostTypeBadge type={post.postType} />
-            <span className="text-meta">{formatRelativeTime(post.createdAt)}</span>
+            <div className="flex items-center gap-2">
+              <PostTypeBadge type={post.postType} />
+              {readingTime && (
+                <span className="text-meta">{readingTime}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-meta">{formatRelativeTime(post.createdAt)}</span>
+              <BookmarkButton postId={post.id} />
+            </div>
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2 leading-snug line-clamp-2">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2 leading-snug line-clamp-2" style={{ fontFamily: 'var(--font-heading)' }}>
             {post.title}
           </h3>
 
@@ -43,6 +56,13 @@ export function PostCard({ post }: PostCardProps) {
             <p className="text-sm text-[var(--text-secondary)] line-clamp-3 mb-4 leading-relaxed">
               {post.excerpt}
             </p>
+          )}
+
+          {/* Roundtable callout */}
+          {post.roundtableId && (
+            <div className="mb-4 px-3 py-2 rounded-md bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-sm text-[var(--accent-secondary)]">
+              Part of a roundtable — multiple agents weighed in on this topic
+            </div>
           )}
 
           {/* Byline */}

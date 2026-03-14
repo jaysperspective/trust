@@ -5,7 +5,8 @@ import { prisma } from '@/lib/db'
 import { Card, CardContent } from '@/components/ui/card'
 import { PostTypeBadge } from '@/components/ui/badge'
 import { AgentAvatar } from '@/components/agent/avatar'
-import { formatDateTime } from '@/lib/utils'
+import { formatDateTime, estimateReadingTime } from '@/lib/utils'
+import { BookmarkButton } from '@/components/bookmarks/bookmark-button'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
@@ -66,6 +67,57 @@ async function getPost(id: string) {
   }
 }
 
+async function getContradictions(postId: string, agentId: string) {
+  // Find claims this agent made on this post
+  const claims = await prisma.claimLedger.findMany({
+    where: { postId },
+    select: { topicFingerprint: true, stance: true, claimText: true },
+  })
+
+  if (claims.length === 0) return []
+
+  // Find opposing claims from other agents on the same topics
+  const fingerprints = claims.map(c => c.topicFingerprint)
+  const opposing = await prisma.claimLedger.findMany({
+    where: {
+      topicFingerprint: { in: fingerprints },
+      agentId: { not: agentId },
+      stance: { in: ['opposes', 'supports'] },
+    },
+    include: {
+      agent: { select: { handle: true, displayName: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  })
+
+  // Find actual contradictions (opposing stances on same topic)
+  const contradictions: {
+    topic: string
+    thisClaim: string
+    otherClaim: string
+    otherAgent: { handle: string; displayName: string }
+  }[] = []
+
+  for (const claim of claims) {
+    for (const other of opposing) {
+      if (
+        other.topicFingerprint === claim.topicFingerprint &&
+        other.stance !== claim.stance
+      ) {
+        contradictions.push({
+          topic: claim.topicFingerprint.substring(0, 8),
+          thisClaim: claim.claimText,
+          otherClaim: other.claimText,
+          otherAgent: other.agent,
+        })
+      }
+    }
+  }
+
+  return contradictions.slice(0, 3)
+}
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
@@ -78,17 +130,27 @@ export default async function PostPage({ params }: PageProps) {
     notFound()
   }
 
+  const readingTime = estimateReadingTime(post.content)
   const rootComments = post.comments.filter(c => !c.parentId)
+  const contradictions = post.agent
+    ? await getContradictions(post.id, post.agent.id)
+    : []
 
   return (
     <section className="container-page py-8">
       <div className="max-w-3xl mx-auto">
         {/* Post header */}
-        <div className="mb-8">
-          <div className="mb-4">
-            <PostTypeBadge type={post.postType} />
+        <div className="mb-8 print-header">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <PostTypeBadge type={post.postType} />
+              <span className="text-meta">{readingTime}</span>
+            </div>
+            <div className="flex items-center gap-3 print-hide">
+              <BookmarkButton postId={post.id} />
+            </div>
           </div>
-          <h1 className="text-headline text-2xl md:text-3xl mb-5">
+          <h1 className="text-headline text-2xl md:text-3xl mb-5" style={{ fontFamily: 'var(--font-heading)' }}>
             {post.title}
           </h1>
 
@@ -96,7 +158,7 @@ export default async function PostPage({ params }: PageProps) {
           {post.agent && (
             <Link
               href={`/a/${post.agent.handle}`}
-              className="flex items-center gap-3 p-4 card card-hover"
+              className="flex items-center gap-3 p-4 card card-hover print-no-hover"
             >
               <AgentAvatar
                 handle={post.agent.handle}
@@ -117,6 +179,44 @@ export default async function PostPage({ params }: PageProps) {
             </Link>
           )}
         </div>
+
+        {/* Agent analytical lens */}
+        {post.agent && (
+          <Card className="mb-6 border-l-4 border-l-[var(--accent-secondary)]">
+            <CardContent className="p-5">
+              <h3 className="section-label mb-2">Analytical Lens</h3>
+              <p className="text-sm text-[var(--text-secondary)]">
+                <strong className="text-[var(--text-primary)]">{post.agent.displayName}</strong> approaches topics as a{' '}
+                <strong className="text-[var(--accent-secondary)]">{post.agent.archetype}</strong>.
+                {post.agent.bio && (
+                  <span> {post.agent.bio.split('.')[0]}.</span>
+                )}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Roundtable callout */}
+        {post.roundtable && (
+          <Card className="mb-6 bg-[var(--bg-elevated)]">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Part of a Roundtable</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    Multiple contributors weighed in on this topic with different perspectives.
+                  </p>
+                </div>
+                <Link
+                  href={`/roundtables/${post.roundtable.id}`}
+                  className="text-sm text-[var(--accent-primary)] hover:underline whitespace-nowrap ml-4"
+                >
+                  View roundtable &rarr;
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Post content */}
         <Card className="mb-6">
@@ -146,36 +246,77 @@ export default async function PostPage({ params }: PageProps) {
           </CardContent>
         </Card>
 
-        {/* Citations */}
+        {/* Contradiction alerts */}
+        {contradictions.length > 0 && (
+          <Card className="mb-6 border-l-4 border-l-[var(--accent-primary)]">
+            <CardContent className="p-5">
+              <h3 className="section-label mb-3 text-[var(--accent-primary)]">
+                Conflicting Views Detected
+              </h3>
+              <p className="text-xs text-[var(--text-secondary)] mb-3">
+                Other contributors have taken different positions on topics covered in this post.
+                Visible disagreement builds more trust than manufactured consensus.
+              </p>
+              <div className="space-y-3">
+                {contradictions.map((c, i) => (
+                  <div key={i} className="text-sm border-t border-[var(--border-subtle)] pt-3 first:border-t-0 first:pt-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Link
+                        href={`/a/${c.otherAgent.handle}`}
+                        className="font-medium text-[var(--accent-secondary)] hover:underline"
+                      >
+                        {c.otherAgent.displayName}
+                      </Link>
+                      <span className="text-[var(--text-muted)]">disagrees:</span>
+                    </div>
+                    <p className="text-[var(--text-secondary)] italic">&ldquo;{c.otherClaim}&rdquo;</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Citations / Sources */}
         {post.citations.length > 0 && (
           <Card className="mb-6">
             <CardContent className="p-6">
               <h3 className="section-label mb-3">
                 Sources ({post.citations.length})
               </h3>
-              <ul className="space-y-2">
-                {post.citations.map((citation) => (
-                  <li key={citation.id} className="text-sm">
-                    {citation.url ? (
-                      <a
-                        href={citation.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[var(--accent-primary)] hover:underline"
-                      >
-                        {citation.title}
-                      </a>
-                    ) : (
-                      <span className="text-[var(--text-primary)]">{citation.title}</span>
-                    )}
-                    {citation.publisher && (
-                      <span className="text-[var(--text-muted)] ml-1">
-                        &mdash; {citation.publisher}
-                      </span>
-                    )}
+              <ol className="space-y-3 list-none">
+                {post.citations.map((citation, index) => (
+                  <li key={citation.id} className="text-sm flex gap-3">
+                    <span className="text-[var(--text-muted)] font-mono text-xs mt-0.5 shrink-0">
+                      [{index + 1}]
+                    </span>
+                    <div>
+                      {citation.url ? (
+                        <a
+                          href={citation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[var(--accent-primary)] hover:underline"
+                        >
+                          {citation.title}
+                        </a>
+                      ) : (
+                        <span className="text-[var(--text-primary)]">{citation.title}</span>
+                      )}
+                      {citation.publisher && (
+                        <span className="text-[var(--text-muted)] ml-1">
+                          &mdash; {citation.publisher}
+                        </span>
+                      )}
+                      {citation.snippet && (
+                        <p className="text-xs text-[var(--text-secondary)] mt-1 italic line-clamp-2">
+                          {citation.snippet}
+                        </p>
+                      )}
+                    </div>
                   </li>
                 ))}
-              </ul>
+              </ol>
             </CardContent>
           </Card>
         )}
@@ -191,18 +332,6 @@ export default async function PostPage({ params }: PageProps) {
                 <CommentCard key={comment.id} comment={comment} />
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Roundtable link */}
-        {post.roundtable && (
-          <div className="mt-8 text-center">
-            <Link
-              href={`/roundtables/${post.roundtable.id}`}
-              className="text-sm text-[var(--accent-primary)] hover:underline"
-            >
-              View full roundtable &rarr;
-            </Link>
           </div>
         )}
       </div>

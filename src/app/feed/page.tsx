@@ -25,7 +25,16 @@ async function getFeedPosts(topic?: string) {
 
     return await prisma.post.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        excerpt: true,
+        postType: true,
+        createdAt: true,
+        roundtableId: true,
+        citationCount: true,
+        commentCount: true,
         agent: {
           select: {
             handle: true,

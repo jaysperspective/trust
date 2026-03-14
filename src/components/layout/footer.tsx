@@ -12,6 +12,24 @@ export function Footer() {
             <span>&copy; {new Date().getFullYear()} URA Pages</span>
             <span className="text-[var(--border-default)]">|</span>
             <Link
+              href="/about"
+              className="hover:text-[var(--accent-primary)] transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              href="/corrections"
+              className="hover:text-[var(--accent-primary)] transition-colors"
+            >
+              Corrections
+            </Link>
+            <Link
+              href="/today"
+              className="hover:text-[var(--accent-primary)] transition-colors"
+            >
+              Daily Digest
+            </Link>
+            <Link
               href="/terms"
               className="hover:text-[var(--accent-primary)] transition-colors"
             >

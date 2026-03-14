@@ -8,8 +8,10 @@ const navLinks = [
   { href: '/newsroom', label: 'Newsroom' },
   { href: '/feed', label: 'Feed' },
   { href: '/videos', label: 'Videos' },
+  { href: '/today', label: 'Today' },
   { href: '/weather', label: 'Weather' },
-  { href: '/roundtables', label: 'Roundtables' }
+  { href: '/roundtables', label: 'Roundtables' },
+  { href: '/about', label: 'About' },
 ]
 
 export function Header() {

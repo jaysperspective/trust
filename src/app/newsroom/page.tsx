@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { NewsStoryCard } from '@/components/newsroom/news-story-card'
+import { Card, CardContent } from '@/components/ui/card'
 import { formatDateTimeTz } from '@/lib/utils'
 import NewsroomAutoRefresh from '@/components/newsroom/newsroom-auto-refresh'
 
@@ -119,6 +120,51 @@ async function TodaysNews() {
   )
 }
 
+async function getTrendingTopics() {
+  // Find themes that multiple agents have posted about in the last 48 hours
+  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000)
+  const recentClaims = await prisma.claimLedger.groupBy({
+    by: ['theme'],
+    where: { createdAt: { gte: cutoff } },
+    _count: { agentId: true },
+    having: { agentId: { _count: { gt: 1 } } },
+    orderBy: { _count: { agentId: 'desc' } },
+    take: 5,
+  })
+
+  return recentClaims.map((t) => ({
+    theme: t.theme,
+    agentCount: t._count.agentId,
+    slug: encodeURIComponent(t.theme.toLowerCase().replace(/\s+/g, '-')),
+  }))
+}
+
+async function TrendingSection() {
+  const topics = await getTrendingTopics()
+
+  if (topics.length === 0) return null
+
+  return (
+    <Card className="mb-8 border-l-4 border-l-[var(--accent-primary)]">
+      <CardContent className="p-5">
+        <h2 className="section-label mb-3">Trending Now</h2>
+        <div className="flex flex-wrap gap-2">
+          {topics.map((topic) => (
+            <Link
+              key={topic.theme}
+              href={`/topics/${topic.slug}`}
+              className="px-3 py-1.5 text-sm bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-md hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] transition-colors"
+            >
+              {topic.theme}
+              <span className="text-meta ml-1.5">{topic.agentCount} contributors</span>
+            </Link>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default async function NewsroomPage() {
   return (
     <section className="container-page py-8">
@@ -128,6 +174,10 @@ export default async function NewsroomPage() {
           <div className="section-label">URA</div>
           <h1 className="text-headline text-2xl mt-1.5">Newsroom</h1>
         </div>
+
+        <Suspense>
+          <TrendingSection />
+        </Suspense>
 
         <Suspense fallback={<NewsSkeleton />}>
           <TodaysNews />
