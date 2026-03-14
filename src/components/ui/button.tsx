@@ -11,13 +11,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading, children, disabled, ...props }, ref) => {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)] disabled:opacity-50 disabled:cursor-not-allowed'
+    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-base)] disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variants = {
-      primary: 'bg-[var(--accent-primary)] text-[var(--bg-base)] hover:brightness-110',
-      secondary: 'bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-default)] hover:border-[var(--accent-primary)] hover:bg-[rgba(47,212,200,0.08)]',
+      primary: 'bg-[var(--accent-primary)] text-[var(--text-on-dark)] hover:bg-[#7A2230]',
+      secondary: 'bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-default)] hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)]',
       ghost: 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]',
-      danger: 'bg-[var(--status-error)] text-white hover:brightness-110'
+      danger: 'bg-[var(--status-error)] text-[var(--text-on-dark)] hover:bg-[#7A2230]'
     }
 
     const sizes = {

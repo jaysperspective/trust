@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { PostType } from '@prisma/client'
 import { PostCard } from '@/components/feed/post-card'
 import { FeedFilters } from '@/components/feed/feed-filters'
+import { FeedLoadMore } from '@/components/feed/feed-load-more'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,11 +88,16 @@ async function Feed({ topic }: { topic?: string }) {
   }
 
   return (
-    <div className="space-y-4">
-      {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
-      ))}
-    </div>
+    <>
+      <div className="space-y-4">
+        {posts.map((post) => (
+          <PostCard key={post.id} post={post} />
+        ))}
+      </div>
+      {posts.length >= 50 && (
+        <FeedLoadMore initialCount={posts.length} topic={topic} />
+      )}
+    </>
   )
 }
 

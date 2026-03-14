@@ -67,7 +67,7 @@ export default function DownloadsAppPage() {
           />
 
           <div>
-            <h1 className="font-mono text-4xl font-bold text-[#e05cb8]">+downloads</h1>
+            <h1 className="font-mono text-4xl font-bold text-[#8E2937]">+downloads</h1>
             <p className="mt-1 text-xs font-mono text-[var(--text-muted)] tracking-widest uppercase">v1.3 · macOS</p>
           </div>
 
@@ -107,7 +107,7 @@ export default function DownloadsAppPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {features.map((f) => (
               <div key={f.label} className="p-4 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)]">
-                <div className="font-mono font-semibold text-sm text-[#e05cb8] mb-1">{f.label}</div>
+                <div className="font-mono font-semibold text-sm text-[#8E2937] mb-1">{f.label}</div>
                 <div className="text-xs text-[var(--text-secondary)] leading-relaxed">{f.desc}</div>
               </div>
             ))}
@@ -122,7 +122,7 @@ export default function DownloadsAppPage() {
           <ol className="space-y-3">
             {installSteps.map((step, i) => (
               <li key={i} className="flex gap-4 items-start">
-                <span className="font-mono text-xs text-[#e05cb8] mt-0.5 w-4 shrink-0">{i + 1}.</span>
+                <span className="font-mono text-xs text-[#8E2937] mt-0.5 w-4 shrink-0">{i + 1}.</span>
                 <span className="text-sm text-[var(--text-secondary)] leading-relaxed">{step}</span>
               </li>
             ))}

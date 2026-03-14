@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 }
 
 const DRIVE_URL = 'https://drive.google.com/uc?export=download&id=12wz2IOo5Edsjch5C1Ctk7SnckM_fuf7k'
-const ACCENT = '#6366f1'
-const ACCENT_HOVER = '#4f46e5'
+const ACCENT = '#617FAE'
+const ACCENT_HOVER = '#4B666E'
 
 const features = [
   { label: 'Import', desc: 'CSV, PDF statements, and PayPal exports from any major bank or card issuer' },

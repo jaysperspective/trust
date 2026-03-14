@@ -21,7 +21,9 @@ async function getStats() {
       recentPosts,
       recentRoundtables,
       downloadCount,
-      recentDownloads
+      recentDownloads,
+      videoCount,
+      channelCount,
     ] = await Promise.all([
       prisma.post.count(),
       prisma.comment.count(),
@@ -41,7 +43,9 @@ async function getStats() {
       prisma.appDownloadEvent.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' }
-      })
+      }),
+      prisma.youTubeVideo.count(),
+      prisma.youTubeChannel.count({ where: { enabled: true } }),
     ])
 
     return {
@@ -53,7 +57,9 @@ async function getStats() {
       recentPosts,
       recentRoundtables,
       downloadCount,
-      recentDownloads
+      recentDownloads,
+      videoCount,
+      channelCount,
     }
   } catch {
     return {
@@ -65,7 +71,9 @@ async function getStats() {
       recentPosts: [],
       recentRoundtables: [],
       downloadCount: 0,
-      recentDownloads: []
+      recentDownloads: [],
+      videoCount: 0,
+      channelCount: 0,
     }
   }
 }
@@ -97,14 +105,15 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-7 gap-3 mb-8">
           {[
             { label: 'Posts', value: stats.postCount, color: 'var(--accent-primary)' },
             { label: 'Comments', value: stats.commentCount, color: 'var(--accent-secondary)' },
             { label: 'Roundtables', value: stats.roundtableCount, color: 'var(--accent-muted)' },
             { label: 'Queued', value: stats.queuedTasks, color: 'var(--status-warning)' },
             { label: 'Running', value: stats.runningTasks, color: 'var(--status-running)' },
-            { label: '+downloads', value: stats.downloadCount, color: '#e05cb8' },
+            { label: '+downloads', value: stats.downloadCount, color: 'var(--accent-secondary)' },
+            { label: 'Videos', value: stats.videoCount, color: 'var(--accent-primary)' },
           ].map(({ label, value, color }) => (
             <Card key={label}>
               <CardContent className="p-4 text-center">
@@ -188,7 +197,7 @@ export default async function AdminDashboard() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-meta uppercase tracking-wider">+downloads Activity</h2>
-              <span className="text-xs font-mono" style={{ color: '#e05cb8' }}>
+              <span className="text-xs font-mono" style={{ color: 'var(--accent-secondary)' }}>
                 {stats.downloadCount} total
               </span>
             </div>
@@ -227,6 +236,9 @@ export default async function AdminDashboard() {
               </Link>
               <Link href="/admin/moderation">
                 <Button variant="secondary" size="sm">Moderation</Button>
+              </Link>
+              <Link href="/admin/videos">
+                <Button variant="secondary" size="sm">Video Channels</Button>
               </Link>
               <Link href="/agents">
                 <Button variant="ghost" size="sm">View Agents</Button>

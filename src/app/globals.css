@@ -1,51 +1,61 @@
 @import "tailwindcss";
 
-/* URA Pages - Trusted Editorial Design System */
-/* Clean, authoritative, content-forward */
+/* URA Pages - Editorial Design System */
+/* Grounded, warm, news-outlet authority */
 
 :root {
+  /* Palette */
+  --blue-slate: #4B666E;
+  --glaucous: #617FAE;
+  --tea-green: #CDDFA0;
+  --burnt-rose: #8E2937;
+  --charcoal: #4F4C4D;
+  --off-white: #F5F2EC;
+
   /* Base backgrounds */
-  --bg-base: #050B14;
-  --bg-surface: #0A1624;
-  --bg-elevated: #0E1F33;
+  --bg-base: #F5F2EC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #EDE9E1;
 
   /* Accent colors */
-  --accent-primary: #2FD4C8;
-  --accent-secondary: #4FA3FF;
-  --accent-muted: #6B8FA8;
+  --accent-primary: #8E2937;
+  --accent-secondary: #617FAE;
+  --accent-muted: #4B666E;
 
   /* Text hierarchy */
-  --text-primary: #E6F1FF;
-  --text-secondary: #9CB3C9;
-  --text-muted: #6F8499;
+  --text-primary: #2A2726;
+  --text-secondary: #4F4C4D;
+  --text-muted: #4B666E;
+  --text-on-dark: #F5F2EC;
 
   /* Borders */
-  --border-subtle: rgba(79, 163, 255, 0.12);
-  --border-default: rgba(79, 163, 255, 0.18);
-  --border-medium: rgba(79, 163, 255, 0.28);
-  --border-hover: rgba(47, 212, 200, 0.35);
-  --border-focus: rgba(47, 212, 200, 0.5);
+  --border-subtle: rgba(75, 102, 110, 0.12);
+  --border-default: rgba(75, 102, 110, 0.22);
+  --border-medium: rgba(75, 102, 110, 0.35);
+  --border-hover: rgba(142, 41, 55, 0.4);
+  --border-focus: rgba(142, 41, 55, 0.5);
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.18);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.22);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 1px 3px rgba(42, 39, 38, 0.06), 0 1px 2px rgba(42, 39, 38, 0.04);
+  --shadow-md: 0 4px 12px rgba(42, 39, 38, 0.08), 0 2px 4px rgba(42, 39, 38, 0.04);
+  --shadow-lg: 0 12px 32px rgba(42, 39, 38, 0.1), 0 4px 8px rgba(42, 39, 38, 0.04);
 
   /* Status */
-  --status-success: #2FD4C8;
-  --status-warning: #E5A54B;
-  --status-error: #C75B5B;
-  --status-running: #4FA3FF;
-  --status-queued: #6B8FA8;
+  --status-success: #4B7A52;
+  --status-warning: #B8860B;
+  --status-error: #8E2937;
+  --status-running: #617FAE;
+  --status-queued: #4B666E;
 
-  /* Surface gradients */
-  --surface-gradient: linear-gradient(180deg, rgba(14, 31, 51, 0.85) 0%, rgba(5, 11, 20, 0.95) 100%);
-  --surface-gradient-hover: linear-gradient(180deg, rgba(14, 31, 51, 0.95) 0%, rgba(10, 22, 36, 0.98) 100%);
+  /* Surface */
+  --surface-gradient: #FFFFFF;
+  --surface-gradient-hover: #FAFAF7;
 
   /* Focus ring */
-  --focus-ring: rgba(47, 212, 200, 0.35);
+  --focus-ring: rgba(142, 41, 55, 0.3);
 
-  /* Fonts */
+  /* Fonts — editorial serif + clean sans */
+  --font-heading: 'Georgia', 'Times New Roman', serif;
   --font-body: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), 'IBM Plex Mono', monospace;
 }
@@ -73,23 +83,6 @@ body {
   min-height: 100vh;
 }
 
-/* Ambient radial gradient — soft teal wash from top */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    1200px 600px at 50% -200px,
-    rgba(47, 212, 200, 0.06),
-    rgba(5, 11, 20, 1)
-  );
-  pointer-events: none;
-  z-index: -1;
-}
-
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -99,7 +92,7 @@ body::before {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-default);
+  background: var(--border-medium);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -110,12 +103,12 @@ body::before {
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 /* Selection */
 ::selection {
-  background: rgba(47, 212, 200, 0.2);
+  background: rgba(205, 223, 160, 0.4);
   color: var(--text-primary);
 }
 
@@ -127,42 +120,43 @@ a {
 }
 
 /* ==========================================================================
-   Card System — generous padding, 20px radius, subtle depth
+   Card System — clean white surfaces with subtle shadows
    ========================================================================== */
 
 .card {
-  background: var(--surface-gradient);
-  border: 1px solid var(--border-default);
-  border-radius: 1.25rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.75rem;
   box-shadow: var(--shadow-sm);
   transition: all 0.15s ease;
 }
 
 .card-hover:hover {
-  background: var(--surface-gradient-hover);
-  border-color: var(--border-hover);
+  border-color: var(--border-default);
   box-shadow: var(--shadow-md);
 }
 
 .card-elevated {
-  background: linear-gradient(180deg, rgba(14, 31, 51, 0.95) 0%, rgba(10, 22, 36, 0.98) 100%);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-md);
 }
 
 /* ==========================================================================
-   Typography — editorial hierarchy
+   Typography — editorial hierarchy with serif headlines
    ========================================================================== */
 
-/* Headline — for page titles */
+/* Headline — serif for page titles, like a newspaper */
 .text-headline {
   color: var(--text-primary);
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.01em;
   line-height: 1.2;
 }
 
 /* Section label — small caps system text */
 .section-label {
-  color: var(--text-muted);
+  color: var(--accent-primary);
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -193,16 +187,14 @@ a {
   font-weight: 400;
 }
 
-/* URA identity gradient */
+/* URA identity — burnt rose */
 .text-ura {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent-primary);
+  font-weight: 700;
 }
 
 /* ==========================================================================
-   Buttons — pill shape, editorial authority
+   Buttons — clean, editorial
    ========================================================================== */
 
 .btn {
@@ -212,7 +204,7 @@ a {
   padding: 0.625rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  border-radius: 9999px;
+  border-radius: 0.375rem;
   transition: all 0.15s ease;
   cursor: pointer;
   border: 1px solid transparent;
@@ -220,12 +212,12 @@ a {
 
 .btn-primary {
   background: var(--accent-primary);
-  color: var(--bg-base);
+  color: var(--text-on-dark);
   border-color: var(--accent-primary);
 }
 .btn-primary:hover {
-  background: #3DE5D8;
-  border-color: #3DE5D8;
+  background: #7A2230;
+  border-color: #7A2230;
 }
 
 .btn-secondary {
@@ -234,8 +226,9 @@ a {
   border-color: var(--border-medium);
 }
 .btn-secondary:hover {
-  background: rgba(47, 212, 200, 0.08);
+  background: rgba(142, 41, 55, 0.06);
   border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .btn-ghost {
@@ -244,7 +237,7 @@ a {
   border-color: transparent;
 }
 .btn-ghost:hover {
-  background: rgba(230, 241, 255, 0.06);
+  background: var(--bg-elevated);
   color: var(--text-primary);
 }
 
@@ -255,9 +248,9 @@ a {
 .input {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  background: rgba(5, 11, 20, 0.6);
+  background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   color: var(--text-primary);
   font-size: 0.875rem;
   transition: all 0.15s ease;
@@ -276,7 +269,7 @@ a {
 }
 
 /* ==========================================================================
-   Badges — clean, minimal
+   Badges — clean, editorial
    ========================================================================== */
 
 .badge {
@@ -288,61 +281,61 @@ a {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: 3px;
   border: 1px solid;
 }
 
 .badge-default {
-  background: rgba(107, 143, 168, 0.12);
-  color: var(--accent-muted);
-  border-color: rgba(107, 143, 168, 0.2);
+  background: rgba(75, 102, 110, 0.08);
+  color: var(--blue-slate);
+  border-color: rgba(75, 102, 110, 0.18);
 }
 .badge-signal {
-  background: rgba(47, 212, 200, 0.1);
-  color: var(--accent-primary);
-  border-color: rgba(47, 212, 200, 0.2);
+  background: rgba(142, 41, 55, 0.06);
+  color: var(--burnt-rose);
+  border-color: rgba(142, 41, 55, 0.15);
 }
 .badge-context {
-  background: rgba(79, 163, 255, 0.1);
-  color: var(--accent-secondary);
-  border-color: rgba(79, 163, 255, 0.2);
+  background: rgba(97, 127, 174, 0.08);
+  color: var(--glaucous);
+  border-color: rgba(97, 127, 174, 0.18);
 }
 .badge-synthesis {
-  background: rgba(47, 212, 200, 0.06);
-  color: #5EEADC;
-  border-color: rgba(47, 212, 200, 0.15);
+  background: rgba(205, 223, 160, 0.2);
+  color: #5A6B2E;
+  border-color: rgba(205, 223, 160, 0.4);
 }
 .badge-meta {
-  background: rgba(107, 143, 168, 0.08);
-  color: var(--accent-muted);
-  border-color: rgba(107, 143, 168, 0.15);
+  background: rgba(79, 76, 77, 0.06);
+  color: var(--charcoal);
+  border-color: rgba(79, 76, 77, 0.15);
 }
 .badge-roundtable {
-  background: rgba(79, 163, 255, 0.08);
-  color: var(--accent-secondary);
-  border-color: rgba(79, 163, 255, 0.15);
+  background: rgba(97, 127, 174, 0.06);
+  color: var(--glaucous);
+  border-color: rgba(97, 127, 174, 0.15);
 }
 
 /* Status badges */
 .badge-queued {
-  background: rgba(107, 143, 168, 0.1);
+  background: rgba(75, 102, 110, 0.08);
   color: var(--status-queued);
-  border-color: rgba(107, 143, 168, 0.2);
+  border-color: rgba(75, 102, 110, 0.18);
 }
 .badge-running {
-  background: rgba(79, 163, 255, 0.1);
+  background: rgba(97, 127, 174, 0.08);
   color: var(--status-running);
-  border-color: rgba(79, 163, 255, 0.2);
+  border-color: rgba(97, 127, 174, 0.18);
 }
 .badge-completed {
-  background: rgba(47, 212, 200, 0.1);
+  background: rgba(75, 122, 82, 0.08);
   color: var(--status-success);
-  border-color: rgba(47, 212, 200, 0.2);
+  border-color: rgba(75, 122, 82, 0.18);
 }
 .badge-failed {
-  background: rgba(199, 91, 91, 0.1);
+  background: rgba(142, 41, 55, 0.06);
   color: var(--status-error);
-  border-color: rgba(199, 91, 91, 0.2);
+  border-color: rgba(142, 41, 55, 0.15);
 }
 
 /* ==========================================================================
@@ -373,7 +366,8 @@ a {
 }
 .prose-ura h1, .prose-ura h2, .prose-ura h3, .prose-ura h4 {
   color: var(--text-primary);
-  font-weight: 600;
+  font-family: var(--font-heading);
+  font-weight: 700;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
 }
@@ -381,14 +375,14 @@ a {
   margin-bottom: 1em;
 }
 .prose-ura strong {
-  color: var(--accent-primary);
+  color: var(--text-primary);
   font-weight: 600;
 }
 .prose-ura a {
   color: var(--accent-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
-  text-decoration-color: rgba(47, 212, 200, 0.4);
+  text-decoration-color: rgba(142, 41, 55, 0.3);
 }
 .prose-ura a:hover {
   text-decoration-color: var(--accent-primary);
@@ -401,7 +395,7 @@ a {
   margin-bottom: 0.25em;
 }
 .prose-ura blockquote {
-  border-left: 2px solid var(--accent-muted);
+  border-left: 3px solid var(--accent-primary);
   padding-left: 1em;
   margin-left: 0;
   color: var(--text-muted);
@@ -410,21 +404,23 @@ a {
 .prose-ura code {
   background: var(--bg-elevated);
   padding: 0.125em 0.375em;
-  border-radius: 4px;
+  border-radius: 3px;
   font-size: 0.875em;
   font-family: var(--font-mono);
   color: var(--accent-secondary);
 }
 .prose-ura pre {
-  background: var(--bg-elevated);
+  background: #2A2726;
+  color: var(--text-on-dark);
   padding: 1em;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   overflow-x: auto;
-  border: 1px solid var(--border-default);
+  border: none;
 }
 .prose-ura pre code {
   background: none;
   padding: 0;
+  color: inherit;
 }
 
 /* ==========================================================================
@@ -440,7 +436,7 @@ a {
   border: 1px solid var(--border-default);
   color: var(--accent-primary);
   font-weight: 600;
-  font-family: var(--font-body);
+  font-family: var(--font-heading);
   text-transform: uppercase;
   flex-shrink: 0;
 }
@@ -474,13 +470,13 @@ a {
    ========================================================================== */
 
 .chamber {
-  background: linear-gradient(180deg, rgba(10, 22, 36, 0.9) 0%, rgba(5, 11, 20, 0.95) 100%);
+  background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
 }
 .chamber-synthesis {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 30px rgba(47, 212, 200, 0.06);
+  border-left: 4px solid var(--accent-primary);
 }
 
 /* ==========================================================================
@@ -514,7 +510,7 @@ a {
   border-bottom: 1px solid var(--border-subtle);
 }
 .admin-table tr:hover td {
-  background: rgba(79, 163, 255, 0.03);
+  background: rgba(75, 102, 110, 0.04);
 }
 .admin-table tr:last-child td {
   border-bottom: none;

@@ -414,3 +414,41 @@ model AppDownloadEvent {
 
   @@index([createdAt])
 }
+
+// =============================================================================
+// YOUTUBE VIDEOS
+// =============================================================================
+
+model YouTubeChannel {
+  id            String   @id @default(cuid())
+  channelId     String   @unique // YouTube channel ID
+  name          String
+  url           String
+  thumbnailUrl  String?
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  videos        YouTubeVideo[]
+
+  @@index([channelId])
+  @@index([enabled])
+}
+
+model YouTubeVideo {
+  id            String         @id @default(cuid())
+  videoId       String         @unique // YouTube video ID
+  title         String
+  description   String?        @db.Text
+  thumbnailUrl  String?
+  channelId     String
+  channel       YouTubeChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  publishedAt   DateTime
+  duration      String?
+  viewCount     Int?
+  fetchedAt     DateTime       @default(now())
+
+  @@index([channelId])
+  @@index([publishedAt])
+  @@index([fetchedAt])
+}

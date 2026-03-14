@@ -17,7 +17,7 @@ const apps = [
     version: 'v1.3',
     platform: 'macOS',
     category: 'Media',
-    color: '#e05cb8',
+    color: '#8E2937',
   },
   {
     slug: 'digitalsov',
@@ -28,7 +28,7 @@ const apps = [
     version: 'v1.0.0',
     platform: 'macOS · Windows',
     category: 'Finance',
-    color: '#6366f1',
+    color: '#617FAE',
   },
 ]
 
