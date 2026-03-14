@@ -2,7 +2,7 @@ import sharp from 'sharp'
 import path from 'path'
 
 const OUT_DIR = path.join(process.cwd(), 'ios', 'App', 'App', 'Assets.xcassets', 'Splash.imageset')
-const ICON_PATH = path.join(process.cwd(), 'public', 'icons', 'appstoreicon3.png')
+const ICON_PATH = path.join(process.cwd(), 'public', 'icons', 'appstoreicon4.png')
 const SIZE = 2732
 const LOGO_SIZE = 400
 

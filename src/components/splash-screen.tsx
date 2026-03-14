@@ -33,7 +33,7 @@ export function SplashScreen() {
       style={{ backgroundColor: '#E8E4DC' }}
     >
       <img
-        src="/icons/appstoreicon3.png"
+        src="/icons/appstoreicon4.png"
         alt="URA Pages"
         width={160}
         height={160}
