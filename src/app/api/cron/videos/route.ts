@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { isAdminAuthenticated } from '@/lib/auth'
-
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
-const CRON_SECRET = process.env.CRON_SECRET
+import { verifyCronSecret, isAdminAuthenticated } from '@/lib/auth'
 
 /**
  * Fetches latest videos from all enabled YouTube channels.
@@ -13,12 +10,13 @@ const CRON_SECRET = process.env.CRON_SECRET
 export async function POST(request: NextRequest) {
   // Auth: accept cron secret OR admin session
   const cronHeader = request.headers.get('x-cron-secret')
-  const isAdmin = await isAdminAuthenticated()
+  const isAuthorized = verifyCronSecret(cronHeader) || await isAdminAuthenticated()
 
-  if (cronHeader !== CRON_SECRET && !isAdmin) {
+  if (!isAuthorized) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
   if (!YOUTUBE_API_KEY) {
     return NextResponse.json({ error: 'YOUTUBE_API_KEY not configured' }, { status: 500 })
   }
@@ -36,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   for (const channel of channels) {
     try {
-      const fetched = await fetchChannelVideos(channel.channelId)
+      const fetched = await fetchChannelVideos(channel.channelId, YOUTUBE_API_KEY)
       totalFetched += fetched
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -51,7 +49,7 @@ export async function POST(request: NextRequest) {
   })
 }
 
-async function fetchChannelVideos(channelId: string): Promise<number> {
+async function fetchChannelVideos(channelId: string, YOUTUBE_API_KEY: string): Promise<number> {
   const channelRes = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`
   )
