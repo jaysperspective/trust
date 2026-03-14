@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { prisma } from '@/lib/db'
 import { VideoCard } from '@/components/videos/video-card'
 import { VideoLoadMore } from '@/components/videos/video-load-more'
-import { formatRelativeTime } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,20 +20,6 @@ async function getVideos() {
     },
     orderBy: { publishedAt: 'desc' },
     take: PAGE_SIZE,
-  })
-}
-
-async function getChannels() {
-  return prisma.youTubeChannel.findMany({
-    where: { enabled: true },
-    orderBy: { name: 'asc' },
-    select: {
-      id: true,
-      name: true,
-      channelId: true,
-      thumbnailUrl: true,
-      _count: { select: { videos: true } },
-    },
   })
 }
 
@@ -64,7 +49,7 @@ async function VideoFeed() {
           No videos yet
         </p>
         <p className="text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
-          Videos from subscribed YouTube channels will appear here once channels are added and the fetcher runs.
+          Videos from subscribed YouTube channels will appear here once the fetcher runs.
         </p>
       </div>
     )
@@ -84,36 +69,6 @@ async function VideoFeed() {
   )
 }
 
-async function ChannelSidebar() {
-  const channels = await getChannels()
-
-  if (channels.length === 0) return null
-
-  return (
-    <div className="mb-6">
-      <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        {channels.map((channel) => (
-          <a
-            key={channel.id}
-            href={`/videos?channel=${channel.channelId}`}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--border-default)] hover:border-[var(--border-hover)] bg-[var(--bg-surface)] whitespace-nowrap text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            {channel.thumbnailUrl ? (
-              <img src={channel.thumbnailUrl} alt="" className="w-5 h-5 rounded-full" />
-            ) : (
-              <div className="w-5 h-5 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center text-xs text-[var(--accent-primary)]">
-                {channel.name.charAt(0)}
-              </div>
-            )}
-            <span>{channel.name}</span>
-            <span className="text-[var(--text-muted)] text-xs">{channel._count.videos}</span>
-          </a>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 export default async function VideosPage() {
   return (
     <section className="container-page py-8">
@@ -122,10 +77,6 @@ export default async function VideosPage() {
           <div className="section-label">URA</div>
           <h1 className="text-headline text-2xl mt-1.5">Videos</h1>
         </div>
-
-        <Suspense fallback={null}>
-          <ChannelSidebar />
-        </Suspense>
 
         <Suspense fallback={<VideoSkeleton />}>
           <VideoFeed />

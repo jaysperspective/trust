@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { isAdminAuthenticated } from '@/lib/auth'
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 const CRON_SECRET = process.env.CRON_SECRET
 
 /**
  * Fetches latest videos from all enabled YouTube channels.
- * Called on a schedule (e.g. every 30 minutes) or manually from admin.
- *
- * Requires YOUTUBE_API_KEY env var and CRON_SECRET for auth.
+ * Auth: cron secret header OR admin session cookie.
+ * Schedule: every 2 hours via external cron, or manual from admin.
  */
 export async function POST(request: NextRequest) {
-  // Auth check
-  const authHeader = request.headers.get('x-cron-secret')
-  if (authHeader !== CRON_SECRET) {
+  // Auth: accept cron secret OR admin session
+  const cronHeader = request.headers.get('x-cron-secret')
+  const isAdmin = await isAdminAuthenticated()
+
+  if (cronHeader !== CRON_SECRET && !isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -50,7 +52,6 @@ export async function POST(request: NextRequest) {
 }
 
 async function fetchChannelVideos(channelId: string): Promise<number> {
-  // Step 1: Get the channel's uploads playlist
   const channelRes = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`
   )
@@ -73,7 +74,7 @@ async function fetchChannelVideos(channelId: string): Promise<number> {
     },
   })
 
-  // Step 2: Get latest videos from uploads playlist
+  // Get latest videos from uploads playlist
   const playlistRes = await fetch(
     `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=10&key=${YOUTUBE_API_KEY}`
   )
@@ -87,11 +88,16 @@ async function fetchChannelVideos(channelId: string): Promise<number> {
 
   if (videoIds.length === 0) return 0
 
-  // Step 3: Get video details (duration, view count)
+  // Get video details
   const detailsRes = await fetch(
     `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,snippet&id=${videoIds.join(',')}&key=${YOUTUBE_API_KEY}`
   )
   const detailsData = await detailsRes.json()
+
+  const channelRecord = await prisma.youTubeChannel.findUnique({
+    where: { channelId },
+  })
+  if (!channelRecord) return 0
 
   let created = 0
 
@@ -99,15 +105,7 @@ async function fetchChannelVideos(channelId: string): Promise<number> {
     const existing = await prisma.youTubeVideo.findUnique({
       where: { videoId: item.id },
     })
-
     if (existing) continue
-
-    // Find the channel record
-    const channelRecord = await prisma.youTubeChannel.findUnique({
-      where: { channelId },
-    })
-
-    if (!channelRecord) continue
 
     await prisma.youTubeVideo.create({
       data: {

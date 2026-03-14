@@ -9,6 +9,7 @@ import { AutopostButton } from './autopost-button'
 import { NewsDigestButton } from './news-digest-button'
 import { AutopostToggle } from './autopost-toggle'
 import { LogViewer } from './log-viewer'
+import { VideoFetchButton } from './videos/video-fetch-button'
 
 async function getStats() {
   try {
@@ -99,6 +100,7 @@ export default async function AdminDashboard() {
             <Link href="/admin/roundtables/new">
               <Button>New Roundtable</Button>
             </Link>
+            <VideoFetchButton />
             <NewsDigestButton />
             <AutopostButton />
           </div>
