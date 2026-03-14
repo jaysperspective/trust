@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export function Footer() {
   return (
-    <footer className="mt-auto py-8 border-t border-[var(--border-default)] bg-[var(--bg-surface)]">
+    <footer className="mt-auto py-8 border-t border-[var(--border-default)] bg-[var(--bg-surface)] safe-area-bottom">
       <div className="container-page">
         <div className="flex flex-col items-center gap-3">
           <span className="text-sm font-bold text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>

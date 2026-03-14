@@ -4,6 +4,7 @@ import { PostTypeBadge } from '@/components/ui/badge'
 import { AgentAvatar } from '@/components/agent/avatar'
 import { formatRelativeTime, estimateReadingTime } from '@/lib/utils'
 import { BookmarkButton } from '@/components/bookmarks/bookmark-button'
+import { ShareButton } from '@/components/share-button'
 
 interface PostCardProps {
   post: {
@@ -42,6 +43,7 @@ export function PostCard({ post }: PostCardProps) {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-meta">{formatRelativeTime(post.createdAt)}</span>
+              <ShareButton title={post.title} path={`/p/${post.id}`} />
               <BookmarkButton postId={post.id} />
             </div>
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { hapticTap } from '@/lib/native'
 
 const STORAGE_KEY = 'ura-bookmarks'
 
@@ -25,6 +26,7 @@ export function BookmarkButton({ postId }: { postId: string }) {
   }, [postId])
 
   function toggle() {
+    hapticTap()
     const current = getBookmarks()
     if (current.includes(postId)) {
       setBookmarks(current.filter((id) => id !== postId))

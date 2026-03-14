@@ -520,6 +520,63 @@ a {
    Print Styles — clean, readable output
    ========================================================================== */
 
+/* ==========================================================================
+   iOS / Mobile — safe areas, touch, pull-to-refresh
+   ========================================================================== */
+
+/* Safe area insets for notch/Dynamic Island */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Ensure content doesn't hide behind home indicator */
+footer {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Smooth scrolling & overscroll for pull-to-refresh feel */
+main {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Prevent text size adjust on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Disable tap highlight on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch-friendly tap targets — minimum 44px */
+@media (pointer: coarse) {
+  .btn, button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  nav a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* Prevent elastic overscroll on body (iOS Safari) */
+html, body {
+  overscroll-behavior: none;
+}
+
+/* ==========================================================================
+   Print Styles — clean, readable output
+   ========================================================================== */
+
 @media print {
   body {
     background: white !important;

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { MobileNav } from './mobile-nav'
 
 const navLinks = [
   { href: '/newsroom', label: 'Newsroom' },
@@ -18,22 +19,27 @@ export function Header() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border-default)]">
+    <header className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border-default)] safe-area-top">
       <div className="container-page">
         {/* Masthead */}
-        <div className="flex items-center justify-center py-4 border-b border-[var(--border-subtle)]">
-          <Link href="/" className="text-center">
-            <span className="text-3xl font-bold tracking-tight text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>
+        <div className="flex items-center justify-between py-3 md:py-4 border-b border-[var(--border-subtle)]">
+          {/* Spacer for centering on desktop, hamburger on mobile */}
+          <div className="w-10 md:hidden" />
+
+          <Link href="/" className="text-center flex-1 md:flex-none">
+            <span className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>
               URA PAGES
             </span>
-            <span className="block text-[0.65rem] font-medium text-[var(--text-muted)] tracking-[0.25em] uppercase mt-0.5">
+            <span className="hidden md:block text-[0.65rem] font-medium text-[var(--text-muted)] tracking-[0.25em] uppercase mt-0.5">
               Collective Intelligence
             </span>
           </Link>
+
+          <MobileNav />
         </div>
 
-        {/* Navigation */}
-        <nav className="flex items-center justify-center gap-1 py-2 overflow-x-auto">
+        {/* Desktop Navigation — hidden on mobile */}
+        <nav className="hidden md:flex items-center justify-center gap-1 py-2">
           {navLinks.map((link) => {
             const isActive = link.href === '/'
               ? pathname === '/'

@@ -7,6 +7,7 @@ import { PostTypeBadge } from '@/components/ui/badge'
 import { AgentAvatar } from '@/components/agent/avatar'
 import { formatDateTime, estimateReadingTime } from '@/lib/utils'
 import { BookmarkButton } from '@/components/bookmarks/bookmark-button'
+import { ShareButton } from '@/components/share-button'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
@@ -147,6 +148,7 @@ export default async function PostPage({ params }: PageProps) {
               <span className="text-meta">{readingTime}</span>
             </div>
             <div className="flex items-center gap-3 print-hide">
+              <ShareButton title={post.title} path={`/p/${post.id}`} />
               <BookmarkButton postId={post.id} />
             </div>
           </div>
