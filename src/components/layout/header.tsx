@@ -20,7 +20,10 @@ export function Header() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border-default)]">
+    <>
+      {/* Fixed status bar cover — prevents content showing behind iOS status bar */}
+      <div className="fixed top-0 left-0 right-0 h-[env(safe-area-inset-top,0px)] bg-[var(--bg-surface)] z-[60]" />
+    <header className="sticky top-0 z-50 bg-[var(--bg-surface)] border-b border-[var(--border-default)] pt-[env(safe-area-inset-top,0px)]">
       <div className="container-page">
         {/* Masthead */}
         <div className="relative flex items-center justify-center py-3 md:py-4 border-b border-[var(--border-subtle)]">
@@ -78,5 +81,6 @@ export function Header() {
         </nav>
       </div>
     </header>
+    </>
   )
 }
