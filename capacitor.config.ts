@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
   ios: {
     scheme: 'URA Pages',
     contentInset: 'automatic',
-    preferredContentMode: 'mobile',
+    preferredContentMode: 'recommended',
     backgroundColor: '#E8E4DC',
   },
   plugins: {
