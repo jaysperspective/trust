@@ -1,32 +1,23 @@
 'use client'
 
-import { Capacitor } from '@capacitor/core'
-
 export function isNative(): boolean {
-  return Capacitor.isNativePlatform()
+  if (typeof window === 'undefined') return false
+  return !!(window as unknown as Record<string, unknown>).Capacitor
 }
 
 export async function hapticTap() {
-  if (!isNative()) return
-  const { Haptics, ImpactStyle } = await import('@capacitor/haptics')
-  await Haptics.impact({ style: ImpactStyle.Light })
+  // Haptics only available in Capacitor shell — no-op on web
 }
 
 export async function nativeShare(title: string, url: string) {
-  if (!isNative()) {
-    // Fallback to Web Share API
-    if (navigator.share) {
+  // Use Web Share API (works on iOS Safari and Capacitor)
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try {
       await navigator.share({ title, url })
-    }
-    return
+    } catch { /* user cancelled */ }
   }
-  const { Share } = await import('@capacitor/share')
-  await Share.share({ title, url })
 }
 
 export async function initStatusBar() {
-  if (!isNative()) return
-  const { StatusBar, Style } = await import('@capacitor/status-bar')
-  await StatusBar.setStyle({ style: Style.Dark })
-  await StatusBar.setBackgroundColor({ color: '#F5F2EC' })
+  // Status bar styling handled by Capacitor native config — no-op on web
 }
