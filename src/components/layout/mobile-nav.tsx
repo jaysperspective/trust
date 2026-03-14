@@ -60,7 +60,7 @@ export function MobileNav() {
       {/* Overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 md:hidden"
+          className="fixed inset-0 z-[65] bg-black/30 md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
@@ -68,7 +68,7 @@ export function MobileNav() {
       {/* Drawer */}
       <div
         className={cn(
-          'fixed top-0 right-0 z-50 h-full w-72 bg-[var(--bg-surface)] border-l border-[var(--border-default)] shadow-lg transform transition-transform duration-250 ease-out md:hidden',
+          'fixed top-0 right-0 z-[70] h-full w-72 bg-[var(--bg-surface)] border-l border-[var(--border-default)] shadow-lg transform transition-transform duration-200 ease-out md:hidden',
           open ? 'translate-x-0' : 'translate-x-full'
         )}
       >
