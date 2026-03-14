@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/topics', label: 'Topics' },
   { href: '/corrections', label: 'Corrections' },
   { href: '/about', label: 'About' },
+  { href: '/downloads', label: 'Downloads' },
   { href: '/search', label: 'Search' },
 ]
 

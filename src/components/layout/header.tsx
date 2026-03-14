@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/weather', label: 'Weather' },
   { href: '/roundtables', label: 'Roundtables' },
   { href: '/about', label: 'About' },
+  { href: '/downloads', label: 'Downloads' },
 ]
 
 export function Header() {
