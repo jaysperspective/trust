@@ -23,6 +23,11 @@ const channels = [
   { handle: 'heathercoxrichardson', channelId: 'UCnbKOlm6H9njgmN-Yil90Rg', name: 'Heather Cox Richardson' },
   { handle: 'trevornoah', channelId: 'UC8bTQzxgvKkXDAaWkeuUlkg', name: 'Trevor Noah' },
   { handle: 'michelleobama', channelId: 'UC64L9OK6WkM0STVxysAWBuA', name: 'Michelle Obama' },
+  { handle: 'breakingpoints', channelId: 'UCDRIjKy6eZOvKtOELtTdeUA', name: 'Breaking Points' },
+  { handle: 'MoonOmens', channelId: 'UCEauk7bv9ULXE8oveqMXHdA', name: 'Moon Omens' },
+  { handle: 'lo-fijungle', channelId: 'UCbnO7aNm91r5RgRYLIhG9Cg', name: 'Lo-Fi Jungle' },
+  { handle: 'CSPAN', channelId: 'UCb--64Gl51jIEVE-GLDAVTg', name: 'C-SPAN' },
+  { handle: 'GritsAndEggsPodcast', channelId: 'UCI0e3NKL_ZnTGNlGFuiwRTA', name: 'Grits And Eggs Podcast' },
 ]
 
 async function main() {
