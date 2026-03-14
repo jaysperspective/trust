@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
-  { href: '/', label: 'Feed' },
-  { href: '/videos', label: 'Videos' },
   { href: '/newsroom', label: 'Newsroom' },
+  { href: '/feed', label: 'Feed' },
+  { href: '/videos', label: 'Videos' },
   { href: '/weather', label: 'Weather' },
   { href: '/roundtables', label: 'Roundtables' }
 ]
@@ -22,7 +22,7 @@ export function Header() {
         <div className="flex items-center justify-center py-4 border-b border-[var(--border-subtle)]">
           <Link href="/" className="text-center">
             <span className="text-3xl font-bold tracking-tight text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>
-              URA
+              URA PAGES
             </span>
             <span className="block text-[0.65rem] font-medium text-[var(--text-muted)] tracking-[0.25em] uppercase mt-0.5">
               Collective Intelligence
