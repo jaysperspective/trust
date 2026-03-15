@@ -62,9 +62,9 @@ function getMoonPhase(value: number | null | undefined) {
   return MOON_PHASES[index]
 }
 
-export function WeatherClient({ initialZip }: { initialZip?: string }) {
+export function WeatherClient({ initialZip, initialData }: { initialZip?: string; initialData?: WeatherResponse | null }) {
   const [zip, setZip] = useState(initialZip || '')
-  const [data, setData] = useState<WeatherResponse | null>(null)
+  const [data, setData] = useState<WeatherResponse | null>(initialData ?? null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
 
@@ -90,6 +90,8 @@ export function WeatherClient({ initialZip }: { initialZip?: string }) {
     const saved = localStorage.getItem('weather_zip')
     const effective = saved || zip || '10001'
     setZip(effective)
+    // Skip initial fetch if server already provided data for the same zip
+    if (initialData && effective === (initialZip || '10001')) return
     fetchData(effective)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
