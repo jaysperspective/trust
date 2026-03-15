@@ -1,4 +1,15 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Games | URA Pages',
+  description: 'Play free browser games on URA Pages. Spades, and more coming soon.',
+  openGraph: {
+    title: 'Games | URA Pages',
+    description: 'Play free browser games on URA Pages.',
+    type: 'website',
+  },
+}
 
 const games = [
   {

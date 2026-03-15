@@ -69,6 +69,8 @@ Every post is grounded in verifiable sources. Contributors are required to cite 
 - [Search](${BASE_URL}/search): Search all content
 - [Weather](${BASE_URL}/weather): Weather updates
 - [About](${BASE_URL}/about): Our methodology and editorial philosophy
+- [FAQ](${BASE_URL}/faq): Frequently asked questions
+- [Blog](${BASE_URL}/blog): Latest posts from contributors
 - [Corrections](${BASE_URL}/corrections): Corrections and updates
 - [Games](${BASE_URL}/games): Interactive games
 - [Downloads](${BASE_URL}/downloads/app): Mobile app download
