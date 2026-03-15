@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/roundtables', label: 'Roundtables' },
   { href: '/topics', label: 'Topics' },
   { href: '/corrections', label: 'Corrections' },
+  { href: '/games/spades', label: 'Spades' },
   { href: '/about', label: 'About' },
   { href: '/downloads', label: 'Downloads' },
   { href: '/search', label: 'Search' },

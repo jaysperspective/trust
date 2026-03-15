@@ -241,6 +241,12 @@ a {
   color: var(--text-primary);
 }
 
+.btn:disabled, .btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ==========================================================================
    Form Inputs
    ========================================================================== */
@@ -623,4 +629,109 @@ html, body {
   .text-meta {
     color: #666 !important;
   }
+}
+
+/* ==========================================================================
+   Spades Game — Playing Cards & Table
+   ========================================================================== */
+
+/* Playing card base */
+.playing-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFEF9;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Card sizes */
+.playing-card-sm {
+  width: 36px;
+  height: 50px;
+  font-size: 0.75rem;
+}
+.playing-card-md {
+  width: 48px;
+  height: 68px;
+  font-size: 1rem;
+}
+.playing-card-lg {
+  width: 64px;
+  height: 90px;
+  font-size: 1.25rem;
+}
+
+/* Card colors */
+.playing-card-red {
+  color: #B91C1C;
+}
+.playing-card-black {
+  color: #1A1A1A;
+}
+.playing-card-spades {
+  color: #1E3A5F;
+}
+
+/* Card back */
+.playing-card-back {
+  background: var(--accent-primary);
+  border-color: #7A2230;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(255,255,255,0.08) 4px,
+    rgba(255,255,255,0.08) 8px
+  );
+}
+
+/* Card fan — horizontal scrollable hand */
+.spades-card-fan {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  overflow-x: auto;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 640px) {
+  .spades-card-fan {
+    justify-content: flex-start;
+    gap: 1px;
+  }
+  .playing-card-md {
+    width: 40px;
+    height: 58px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Game table — warm surface instead of green felt */
+.spades-table {
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-default);
+  border-radius: 0.75rem;
+  box-shadow: inset 0 2px 8px rgba(42, 39, 38, 0.06);
+}
+
+/* Disable text selection during gameplay */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
 }

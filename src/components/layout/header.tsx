@@ -12,6 +12,7 @@ const navLinks = [
   { href: '/today', label: 'Today' },
   { href: '/weather', label: 'Weather' },
   { href: '/roundtables', label: 'Roundtables' },
+  { href: '/games/spades', label: 'Spades' },
   { href: '/about', label: 'About' },
   { href: '/downloads', label: 'Downloads' },
 ]
