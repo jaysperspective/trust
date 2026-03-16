@@ -426,6 +426,7 @@ model YouTubeChannel {
   url           String
   thumbnailUrl  String?
   enabled       Boolean  @default(true)
+  maxResults    Int      @default(10) // max videos to fetch per cycle (1-50)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

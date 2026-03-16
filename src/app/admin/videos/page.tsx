@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { formatRelativeTime } from '@/lib/utils'
 import { VideoFetchButton } from './video-fetch-button'
 import { AddChannelForm } from './add-channel-form'
+import { ChannelSettings } from './channel-settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,14 +107,21 @@ export default async function AdminVideosPage() {
                         </div>
                       </div>
                     </div>
-                    <a
-                      href={ch.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-[var(--accent-primary)] hover:underline"
-                    >
-                      View on YouTube
-                    </a>
+                    <div className="flex items-center gap-3">
+                      <ChannelSettings
+                        id={ch.id}
+                        maxResults={ch.maxResults}
+                        enabled={ch.enabled}
+                      />
+                      <a
+                        href={ch.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-[var(--accent-primary)] hover:underline"
+                      >
+                        YouTube
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>

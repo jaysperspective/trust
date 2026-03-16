@@ -4,7 +4,7 @@ import 'dotenv/config'
 const prisma = new PrismaClient()
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 
-async function fetchChannelVideos(channelId: string, channelDbId: string): Promise<number> {
+async function fetchChannelVideos(channelId: string, channelDbId: string, maxResults: number = 10): Promise<number> {
   // Get uploads playlist
   const channelRes = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`
@@ -30,7 +30,7 @@ async function fetchChannelVideos(channelId: string, channelDbId: string): Promi
 
   // Get latest videos
   const playlistRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=10&key=${YOUTUBE_API_KEY}`
+    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`
   )
   const playlistData = await playlistRes.json()
 
@@ -93,7 +93,7 @@ async function main() {
 
   for (const ch of channels) {
     try {
-      const count = await fetchChannelVideos(ch.channelId, ch.id)
+      const count = await fetchChannelVideos(ch.channelId, ch.id, ch.maxResults)
       total += count
       console.log(`  ${ch.name}: ${count} new videos`)
     } catch (err: any) {

@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   for (const channel of channels) {
     try {
-      const fetched = await fetchChannelVideos(channel.channelId, YOUTUBE_API_KEY)
+      const fetched = await fetchChannelVideos(channel.channelId, YOUTUBE_API_KEY, channel.maxResults)
       totalFetched += fetched
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   })
 }
 
-async function fetchChannelVideos(channelId: string, YOUTUBE_API_KEY: string): Promise<number> {
+async function fetchChannelVideos(channelId: string, YOUTUBE_API_KEY: string, maxResults: number = 10): Promise<number> {
   const channelRes = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,snippet&id=${channelId}&key=${YOUTUBE_API_KEY}`
   )
@@ -74,7 +74,7 @@ async function fetchChannelVideos(channelId: string, YOUTUBE_API_KEY: string): P
 
   // Get latest videos from uploads playlist
   const playlistRes = await fetch(
-    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=10&key=${YOUTUBE_API_KEY}`
+    `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=${maxResults}&key=${YOUTUBE_API_KEY}`
   )
   const playlistData = await playlistRes.json()
 
