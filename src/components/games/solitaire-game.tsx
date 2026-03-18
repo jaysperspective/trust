@@ -18,14 +18,6 @@ interface DragInfo {
   offsetY: number
 }
 
-/* Pending stock drag — we don't draw until actual movement */
-interface PendingStockDrag {
-  startX: number
-  startY: number
-  offsetX: number
-  offsetY: number
-}
-
 /* ─── Card Components ──────────────────────────── */
 
 function SolitaireCard({
@@ -117,7 +109,6 @@ export function SolitaireGame() {
   const [drag, setDrag] = useState<DragInfo | null>(null)
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
   const didDragRef = useRef(false)
-  const pendingStockDragRef = useRef<PendingStockDrag | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const foundationRefs = useRef<(HTMLDivElement | null)[]>([])
   const tableauRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -241,55 +232,6 @@ export function SolitaireGame() {
     }
   }, [drag, dropCard])
 
-  // Pending stock drag effect — only draws card once user moves past threshold
-  useEffect(() => {
-    const pending = pendingStockDragRef.current
-    if (!pending) return
-
-    const onMove = (e: MouseEvent | TouchEvent) => {
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-      const dx = Math.abs(clientX - pending.startX)
-      const dy = Math.abs(clientY - pending.startY)
-
-      if (dx >= 5 || dy >= 5) {
-        // Threshold crossed — draw the card and start real drag
-        const card = drawAndDrag()
-        pendingStockDragRef.current = null
-        if (card) {
-          didDragRef.current = true
-          setTimeout(() => { didDragRef.current = false }, 0)
-          setDrag({
-            source: 'waste',
-            cards: [card],
-            startX: pending.startX,
-            startY: pending.startY,
-            offsetX: pending.offsetX,
-            offsetY: pending.offsetY,
-          })
-          setDragPos({ x: clientX, y: clientY })
-        }
-      }
-    }
-
-    const onEnd = () => {
-      // Released without enough movement — treat as a click (handled by onClick)
-      pendingStockDragRef.current = null
-    }
-
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onEnd)
-    window.addEventListener('touchmove', onMove, { passive: false })
-    window.addEventListener('touchend', onEnd)
-
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onEnd)
-      window.removeEventListener('touchmove', onMove)
-      window.removeEventListener('touchend', onEnd)
-    }
-  })
-
   const handleStockClick = useCallback(() => {
     if (didDragRef.current) return
     drawCard()
@@ -297,18 +239,58 @@ export function SolitaireGame() {
 
   const handleStockMouseDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!game || game.stock.length === 0) return
-    e.preventDefault()
+    // Don't preventDefault — let click fire normally for simple clicks
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     const target = e.currentTarget as HTMLElement
     const rect = target.getBoundingClientRect()
-    pendingStockDragRef.current = {
-      startX: clientX,
-      startY: clientY,
-      offsetX: clientX - rect.left,
-      offsetY: clientY - rect.top,
+    const startX = clientX
+    const startY = clientY
+    const offsetX = clientX - rect.left
+    const offsetY = clientY - rect.top
+
+    const onMove = (ev: MouseEvent | TouchEvent) => {
+      const cx = 'touches' in ev ? ev.touches[0].clientX : ev.clientX
+      const cy = 'touches' in ev ? ev.touches[0].clientY : ev.clientY
+      const dx = Math.abs(cx - startX)
+      const dy = Math.abs(cy - startY)
+
+      if (dx >= 5 || dy >= 5) {
+        cleanup()
+        const card = drawAndDrag()
+        if (card) {
+          didDragRef.current = true
+          setTimeout(() => { didDragRef.current = false }, 0)
+          setDrag({
+            source: 'waste',
+            cards: [card],
+            startX,
+            startY,
+            offsetX,
+            offsetY,
+          })
+          setDragPos({ x: cx, y: cy })
+        }
+      }
     }
-  }, [game])
+
+    const onEnd = () => {
+      cleanup()
+      // No drag happened — click handler will fire and draw normally
+    }
+
+    const cleanup = () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onEnd)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onEnd)
+    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchend', onEnd)
+  }, [game, drawAndDrag])
 
   const handleWasteClick = useCallback(() => {
     if (didDragRef.current) return
