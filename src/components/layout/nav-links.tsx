@@ -10,7 +10,7 @@ const navLinks = [
   { href: '/videos', label: 'Videos' },
   { href: '/today', label: 'Today' },
   { href: '/weather', label: 'Weather' },
-  { href: '/games/spades', label: 'Spades' },
+  { href: '/games', label: 'Games' },
   { href: '/about', label: 'About' },
   { href: '/downloads', label: 'Downloads' },
 ]

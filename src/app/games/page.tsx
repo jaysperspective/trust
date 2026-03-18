@@ -17,6 +17,11 @@ const games = [
     name: 'Spades',
     description: 'Classic trick-taking card game. Play against three CPU opponents in Ace High, Three Jokers, or Straight Struggle mode.',
   },
+  {
+    slug: 'solitaire',
+    name: 'Solitaire',
+    description: 'Classic Klondike Solitaire. Build four foundation piles from Ace to King, sorting by suit.',
+  },
 ]
 
 export default function GamesPage() {
