@@ -97,9 +97,10 @@
   background: var(--bg-elevated);
 }
 
-/* Dark mode: playing card overrides */
+/* Dark mode: playing card overrides — keep face-up cards white */
 [data-theme="dark"] .playing-card {
-  background: var(--bg-surface);
+  background: #FFFEF9;
+  border-color: #d4d0c8;
 }
 [data-theme="dark"] .spades-table {
   background: var(--bg-elevated);
