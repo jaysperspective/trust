@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import type { GameState } from './types'
+import type { Card, GameState } from './types'
 import * as engine from './engine'
 
 interface SelectedCard {
@@ -24,6 +24,8 @@ interface SolitaireStore {
   moveToTableau: (toCol: number) => void
   autoMoveToFoundation: (source: 'waste' | 'tableau', colIndex?: number) => void
   autoMove: (source: 'waste' | 'tableau', colIndex?: number, cardIndex?: number) => void
+  dropCard: (source: 'waste' | 'tableau', colIndex: number | undefined, cardIndex: number | undefined, target: 'tableau' | 'foundation', targetIndex: number) => void
+  drawAndDrag: () => Card | null
   autoCompleteAll: () => void
   tick: () => void
 }
@@ -167,6 +169,45 @@ export const useSolitaireStore = create<SolitaireStore>()((set, get) => ({
         if (r !== game) { set({ game: r, selectedCard: null }); return }
       }
     }
+  },
+
+  dropCard: (source, colIndex, cardIndex, target, targetIndex) => {
+    const { game } = get()
+    if (!game || game.won) return
+
+    let newGame: GameState | null = null
+
+    if (target === 'foundation') {
+      if (source === 'waste') {
+        const r = engine.moveWasteToFoundation(game, targetIndex)
+        if (r !== game) newGame = r
+      } else if (source === 'tableau' && colIndex !== undefined) {
+        const r = engine.moveTableauToFoundation(game, colIndex, targetIndex)
+        if (r !== game) newGame = r
+      }
+    } else {
+      if (source === 'waste') {
+        const r = engine.moveWasteToTableau(game, targetIndex)
+        if (r !== game) newGame = r
+      } else if (source === 'tableau' && colIndex !== undefined && cardIndex !== undefined) {
+        const r = engine.moveTableauToTableau(game, colIndex, cardIndex, targetIndex)
+        if (r !== game) newGame = r
+      }
+    }
+
+    if (newGame) {
+      set({ game: newGame, selectedCard: null })
+    }
+  },
+
+  drawAndDrag: () => {
+    const { game } = get()
+    if (!game || game.won) return null
+    if (game.stock.length === 0) return null
+    const newGame = engine.drawFromStock(game)
+    set({ game: newGame, selectedCard: null })
+    const card = newGame.waste[newGame.waste.length - 1]
+    return card
   },
 
   autoCompleteAll: () => {

@@ -101,12 +101,15 @@ export function SolitaireGame() {
   const moveToTableau = useSolitaireStore(s => s.moveToTableau)
   const autoMoveToFoundation = useSolitaireStore(s => s.autoMoveToFoundation)
   const autoMove = useSolitaireStore(s => s.autoMove)
+  const dropCard = useSolitaireStore(s => s.dropCard)
+  const drawAndDrag = useSolitaireStore(s => s.drawAndDrag)
   const autoCompleteAll = useSolitaireStore(s => s.autoCompleteAll)
   const tick = useSolitaireStore(s => s.tick)
 
   // Drag state
   const [drag, setDrag] = useState<DragInfo | null>(null)
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
+  const didDragRef = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const foundationRefs = useRef<(HTMLDivElement | null)[]>([])
   const tableauRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -163,6 +166,7 @@ export function SolitaireGame() {
     if (!drag) return
 
     const onMove = (e: MouseEvent | TouchEvent) => {
+      if ('touches' in e) e.preventDefault()
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
       setDragPos({ x: clientX, y: clientY })
@@ -180,28 +184,19 @@ export function SolitaireGame() {
         return // Let the click handler deal with it
       }
 
-      // Find drop target
+      // Suppress the click event that follows mouseup
+      didDragRef.current = true
+      setTimeout(() => { didDragRef.current = false }, 0)
+
+      // Find drop target — check foundations first
       let handled = false
 
-      // Check foundations
       for (let fi = 0; fi < 4; fi++) {
         const el = foundationRefs.current[fi]
         if (!el) continue
         const rect = el.getBoundingClientRect()
         if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
-          // Set selection then move to foundation
-          const store = useSolitaireStore.getState()
-          if (drag.source === 'waste') {
-            selectCard('waste')
-            setTimeout(() => moveToFoundation(fi), 0)
-          } else if (drag.source === 'tableau' && drag.colIndex !== undefined && drag.cardIndex !== undefined) {
-            // Only top card can go to foundation
-            const col = store.game?.tableau[drag.colIndex]
-            if (col && drag.cardIndex === col.length - 1) {
-              selectCard('tableau', drag.colIndex, drag.cardIndex)
-              setTimeout(() => moveToFoundation(fi), 0)
-            }
-          }
+          dropCard(drag.source, drag.colIndex, drag.cardIndex, 'foundation', fi)
           handled = true
           break
         }
@@ -214,23 +209,11 @@ export function SolitaireGame() {
           if (!el) continue
           const rect = el.getBoundingClientRect()
           if (clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom) {
-            if (drag.source === 'waste') {
-              selectCard('waste')
-              setTimeout(() => moveToTableau(ci), 0)
-            } else if (drag.source === 'tableau' && drag.colIndex !== undefined && drag.cardIndex !== undefined) {
-              if (ci !== drag.colIndex) {
-                selectCard('tableau', drag.colIndex, drag.cardIndex)
-                setTimeout(() => moveToTableau(ci), 0)
-              }
-            }
+            dropCard(drag.source, drag.colIndex, drag.cardIndex, 'tableau', ci)
             handled = true
             break
           }
         }
-      }
-
-      if (!handled) {
-        clearSelection()
       }
 
       setDrag(null)
@@ -247,13 +230,34 @@ export function SolitaireGame() {
       window.removeEventListener('touchmove', onMove)
       window.removeEventListener('touchend', onEnd)
     }
-  }, [drag, selectCard, moveToFoundation, moveToTableau, clearSelection])
+  }, [drag, dropCard])
 
   const handleStockClick = useCallback(() => {
+    if (didDragRef.current) return
     drawCard()
   }, [drawCard])
 
+  const handleStockDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    if (!game || game.stock.length === 0) return
+    const card = drawAndDrag()
+    if (!card) return
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    const target = e.currentTarget as HTMLElement
+    const rect = target.getBoundingClientRect()
+    setDrag({
+      source: 'waste',
+      cards: [card],
+      startX: clientX,
+      startY: clientY,
+      offsetX: clientX - rect.left,
+      offsetY: clientY - rect.top,
+    })
+    setDragPos({ x: clientX, y: clientY })
+  }, [game, drawAndDrag])
+
   const handleWasteClick = useCallback(() => {
+    if (didDragRef.current) return
     selectCard('waste')
   }, [selectCard])
 
@@ -268,11 +272,13 @@ export function SolitaireGame() {
   }, [game, startDrag])
 
   const handleFoundationClick = useCallback((fi: number) => {
+    if (didDragRef.current) return
     if (!selectedCard) return
     moveToFoundation(fi)
   }, [selectedCard, moveToFoundation])
 
   const handleTableauCardClick = useCallback((colIndex: number, cardIndex: number) => {
+    if (didDragRef.current) return
     if (!game) return
     const col = game.tableau[colIndex]
     const card = col[cardIndex]
@@ -301,6 +307,7 @@ export function SolitaireGame() {
   }, [game, startDrag])
 
   const handleEmptyTableauClick = useCallback((colIndex: number) => {
+    if (didDragRef.current) return
     if (!selectedCard) return
     moveToTableau(colIndex)
   }, [selectedCard, moveToTableau])
@@ -401,6 +408,8 @@ export function SolitaireGame() {
             <div
               className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} playing-card-back cursor-pointer`}
               onClick={handleStockClick}
+              onMouseDown={handleStockDragStart}
+              onTouchStart={handleStockDragStart}
             />
           ) : game.waste.length > 0 ? (
             <div
