@@ -18,6 +18,14 @@ interface DragInfo {
   offsetY: number
 }
 
+/* Pending stock drag — we don't draw until actual movement */
+interface PendingStockDrag {
+  startX: number
+  startY: number
+  offsetX: number
+  offsetY: number
+}
+
 /* ─── Card Components ──────────────────────────── */
 
 function SolitaireCard({
@@ -65,10 +73,10 @@ function SolitaireCard({
   )
 }
 
-function EmptySlot({ label, onClick, small, onDrop }: { label?: string; onClick?: () => void; small?: boolean; onDrop?: () => void }) {
+function EmptySlot({ label, onClick, small }: { label?: string; onClick?: () => void; small?: boolean }) {
   return (
     <div
-      className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} border-dashed border-2 border-[var(--border-default)] bg-transparent ${onClick || onDrop ? 'cursor-pointer' : ''}`}
+      className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} border-dashed border-2 border-[var(--border-default)] bg-transparent ${onClick ? 'cursor-pointer' : ''}`}
       style={{ boxShadow: 'none' }}
       onClick={onClick}
     >
@@ -99,7 +107,6 @@ export function SolitaireGame() {
   const clearSelection = useSolitaireStore(s => s.clearSelection)
   const moveToFoundation = useSolitaireStore(s => s.moveToFoundation)
   const moveToTableau = useSolitaireStore(s => s.moveToTableau)
-  const autoMoveToFoundation = useSolitaireStore(s => s.autoMoveToFoundation)
   const autoMove = useSolitaireStore(s => s.autoMove)
   const dropCard = useSolitaireStore(s => s.dropCard)
   const drawAndDrag = useSolitaireStore(s => s.drawAndDrag)
@@ -110,6 +117,7 @@ export function SolitaireGame() {
   const [drag, setDrag] = useState<DragInfo | null>(null)
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
   const didDragRef = useRef(false)
+  const pendingStockDragRef = useRef<PendingStockDrag | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const foundationRefs = useRef<(HTMLDivElement | null)[]>([])
   const tableauRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -162,6 +170,7 @@ export function SolitaireGame() {
     setDragPos({ x: clientX, y: clientY })
   }, [])
 
+  // Active drag effect
   useEffect(() => {
     if (!drag) return
 
@@ -181,7 +190,7 @@ export function SolitaireGame() {
       const dy = Math.abs(clientY - drag.startY)
       if (dx < 5 && dy < 5) {
         setDrag(null)
-        return // Let the click handler deal with it
+        return
       }
 
       // Suppress the click event that follows mouseup
@@ -232,29 +241,74 @@ export function SolitaireGame() {
     }
   }, [drag, dropCard])
 
+  // Pending stock drag effect — only draws card once user moves past threshold
+  useEffect(() => {
+    const pending = pendingStockDragRef.current
+    if (!pending) return
+
+    const onMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+      const dx = Math.abs(clientX - pending.startX)
+      const dy = Math.abs(clientY - pending.startY)
+
+      if (dx >= 5 || dy >= 5) {
+        // Threshold crossed — draw the card and start real drag
+        const card = drawAndDrag()
+        pendingStockDragRef.current = null
+        if (card) {
+          didDragRef.current = true
+          setTimeout(() => { didDragRef.current = false }, 0)
+          setDrag({
+            source: 'waste',
+            cards: [card],
+            startX: pending.startX,
+            startY: pending.startY,
+            offsetX: pending.offsetX,
+            offsetY: pending.offsetY,
+          })
+          setDragPos({ x: clientX, y: clientY })
+        }
+      }
+    }
+
+    const onEnd = () => {
+      // Released without enough movement — treat as a click (handled by onClick)
+      pendingStockDragRef.current = null
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onEnd)
+    window.addEventListener('touchmove', onMove, { passive: false })
+    window.addEventListener('touchend', onEnd)
+
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onEnd)
+      window.removeEventListener('touchmove', onMove)
+      window.removeEventListener('touchend', onEnd)
+    }
+  })
+
   const handleStockClick = useCallback(() => {
     if (didDragRef.current) return
     drawCard()
   }, [drawCard])
 
-  const handleStockDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+  const handleStockMouseDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!game || game.stock.length === 0) return
-    const card = drawAndDrag()
-    if (!card) return
+    e.preventDefault()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     const target = e.currentTarget as HTMLElement
     const rect = target.getBoundingClientRect()
-    setDrag({
-      source: 'waste',
-      cards: [card],
+    pendingStockDragRef.current = {
       startX: clientX,
       startY: clientY,
       offsetX: clientX - rect.left,
       offsetY: clientY - rect.top,
-    })
-    setDragPos({ x: clientX, y: clientY })
-  }, [game, drawAndDrag])
+    }
+  }, [game])
 
   const handleWasteClick = useCallback(() => {
     if (didDragRef.current) return
@@ -341,10 +395,12 @@ export function SolitaireGame() {
   if (!game) return null
 
   const small = useSmallCards
-  const cardW = small ? 30 : 36
+  // Card dimensions match CSS: sm=36x50, xs=30x42
   const cardH = small ? 42 : 50
-  const faceUpOverlap = small ? -30 : -35
-  const faceDownOverlap = small ? -35 : -42
+  // Show enough of each face-up card to read rank+suit (~20px visible)
+  const faceUpOverlap = -(cardH - 20)
+  // Face-down cards just need a sliver (~8px visible)
+  const faceDownOverlap = -(cardH - 8)
 
   return (
     <div ref={containerRef} onClick={handleBackgroundClick} style={{ position: 'relative' }}>
@@ -416,8 +472,8 @@ export function SolitaireGame() {
             <div
               className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} playing-card-back cursor-pointer`}
               onClick={handleStockClick}
-              onMouseDown={handleStockDragStart}
-              onTouchStart={handleStockDragStart}
+              onMouseDown={handleStockMouseDown}
+              onTouchStart={handleStockMouseDown}
             />
           ) : game.waste.length > 0 ? (
             <div
@@ -537,7 +593,7 @@ export function SolitaireGame() {
                 key={i}
                 className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} ${red ? 'playing-card-red' : 'playing-card-black'}`}
                 style={{
-                  marginTop: i === 0 ? 0 : small ? 10 : 15,
+                  marginTop: i === 0 ? 0 : 20,
                   boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
                   position: 'relative',
                 }}
