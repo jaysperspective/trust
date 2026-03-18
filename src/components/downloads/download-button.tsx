@@ -8,14 +8,9 @@ interface DownloadButtonProps {
 }
 
 export function DownloadButton({ label, url, color = '#8E2937', hoverColor = '#7A2230' }: DownloadButtonProps) {
-  async function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    e.preventDefault()
-    try {
-      await fetch('/api/downloads/track', { method: 'POST' })
-    } catch {
-      // don't block the download if tracking fails
-    }
-    window.location.href = url
+  function handleClick() {
+    // Fire-and-forget: track without blocking navigation
+    navigator.sendBeacon('/api/downloads/track')
   }
 
   return (

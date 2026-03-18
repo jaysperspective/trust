@@ -128,7 +128,7 @@ a {
   border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
   box-shadow: var(--shadow-sm);
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .card-hover:hover {
@@ -205,7 +205,7 @@ a {
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 0.375rem;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   cursor: pointer;
   border: 1px solid transparent;
 }
@@ -259,7 +259,7 @@ a {
   border-radius: 0.375rem;
   color: var(--text-primary);
   font-size: 0.875rem;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .input:focus {
   outline: none;
