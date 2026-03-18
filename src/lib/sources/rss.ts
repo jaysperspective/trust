@@ -53,6 +53,9 @@ const DEFAULT_RSS_FEEDS = [
   // Podcasts
   { url: 'https://feeds.simplecast.com/54nAGcIl', publisher: 'The Daily (NYT)' },
 
+  // Local news
+  { url: 'https://api.axios.com/feed/?topic=richmond', publisher: 'Axios Richmond' },
+
   // Global wire (kept for depth)
   { url: 'https://www.theguardian.com/world/rss', publisher: 'The Guardian' },
   { url: 'https://feeds.npr.org/1001/rss.xml', publisher: 'NPR' },
