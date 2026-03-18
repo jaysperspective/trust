@@ -76,6 +76,7 @@ export function deal(): GameState {
     stock,
     waste: [],
     moves: 0,
+    score: 0,
     won: false,
     startedAt: Date.now(),
   }
@@ -104,11 +105,11 @@ export function canPlaceOnFoundation(card: Card, foundation: Card[], foundationI
   return rankValue(card.rank) - rankValue(topCard.rank) === 1
 }
 
-function flipTopCard(column: Card[]): Card[] {
-  if (column.length === 0) return column
+function flipTopCard(column: Card[]): { col: Card[]; flipped: boolean } {
+  if (column.length === 0) return { col: column, flipped: false }
   const last = column[column.length - 1]
-  if (last.faceUp) return column
-  return [...column.slice(0, -1), { ...last, faceUp: true }]
+  if (last.faceUp) return { col: column, flipped: false }
+  return { col: [...column.slice(0, -1), { ...last, faceUp: true }], flipped: true }
 }
 
 export function drawFromStock(state: GameState): GameState {
@@ -125,13 +126,13 @@ export function drawFromStock(state: GameState): GameState {
 export function resetStock(state: GameState): GameState {
   if (state.stock.length > 0) return state
   if (state.waste.length === 0) return state
-  // Reverse waste and flip all face down
   const newStock = [...state.waste].reverse().map(c => ({ ...c, faceUp: false }))
   return {
     ...state,
     stock: newStock,
     waste: [],
     moves: state.moves + 1,
+    score: Math.max(0, state.score - 100),
   }
 }
 
@@ -150,6 +151,7 @@ export function moveWasteToTableau(state: GameState, colIndex: number): GameStat
     waste: state.waste.slice(0, -1),
     tableau: newTableau,
     moves: state.moves + 1,
+    score: state.score + 5,
   }
 }
 
@@ -167,6 +169,7 @@ export function moveWasteToFoundation(state: GameState, foundIndex: number): Gam
     waste: state.waste.slice(0, -1),
     foundations: newFoundations,
     moves: state.moves + 1,
+    score: state.score + 10,
   }
   return { ...newState, won: checkWin(newState) }
 }
@@ -196,7 +199,7 @@ export function moveTableauToTableau(
     if (rankValue(prev.rank) - rankValue(curr.rank) !== 1) return state
   }
 
-  const remaining = flipTopCard(sourceColumn.slice(0, cardIndex))
+  const { col: remaining, flipped } = flipTopCard(sourceColumn.slice(0, cardIndex))
 
   const newTableau = state.tableau.map((col, i) => {
     if (i === fromCol) return remaining
@@ -208,6 +211,7 @@ export function moveTableauToTableau(
     ...state,
     tableau: newTableau,
     moves: state.moves + 1,
+    score: state.score + (flipped ? 5 : 0),
   }
 }
 
@@ -219,7 +223,7 @@ export function moveTableauToFoundation(state: GameState, colIndex: number, foun
   if (!card.faceUp) return state
   if (!canPlaceOnFoundation(card, state.foundations[foundIndex], foundIndex)) return state
 
-  const remaining = flipTopCard(column.slice(0, -1))
+  const { col: remaining, flipped } = flipTopCard(column.slice(0, -1))
 
   const newTableau = state.tableau.map((col, i) =>
     i === colIndex ? remaining : col
@@ -233,6 +237,7 @@ export function moveTableauToFoundation(state: GameState, colIndex: number, foun
     tableau: newTableau,
     foundations: newFoundations,
     moves: state.moves + 1,
+    score: state.score + 10 + (flipped ? 5 : 0),
   }
   return { ...newState, won: checkWin(newState) }
 }
@@ -320,4 +325,11 @@ export function tryAutoMoveToFoundation(
   }
 
   return null
+}
+
+/** Calculate time bonus for winning (classic Klondike style) */
+export function timeBonus(elapsedSeconds: number): number {
+  if (elapsedSeconds <= 30) return 700
+  if (elapsedSeconds >= 600) return 0
+  return Math.max(0, Math.round(700000 / elapsedSeconds))
 }

@@ -13,6 +13,7 @@ export interface GameState {
   stock: Card[]          // draw pile
   waste: Card[]          // flipped cards from stock
   moves: number
+  score: number
   won: boolean
   startedAt: number
 }

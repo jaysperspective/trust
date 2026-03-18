@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react'
 import type { Card } from '@/lib/solitaire/types'
-import { isRed, suitSymbol, FOUNDATION_SUITS } from '@/lib/solitaire/engine'
+import { isRed, suitSymbol, FOUNDATION_SUITS, timeBonus } from '@/lib/solitaire/engine'
 import { useSolitaireStore } from '@/lib/solitaire/store'
 
 /* ─── Drag State ──────────────────────────────── */
@@ -373,31 +373,39 @@ export function SolitaireGame() {
           )}
         </div>
         <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
+          <span>Score: {game.score}</span>
           <span>Moves: {game.moves}</span>
           <span>Time: {formatTime(elapsed)}</span>
         </div>
       </div>
 
       {/* Win message */}
-      {game.won && (
-        <div className="card p-6 mb-4 text-center">
-          <h2
-            className="text-2xl font-bold text-[var(--accent-primary)] mb-2"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
-            Congratulations!
-          </h2>
-          <p className="text-[var(--text-secondary)]">
-            You won in {game.moves} moves and {formatTime(elapsed)}!
-          </p>
-          <button
-            onClick={(e) => { e.stopPropagation(); newGame() }}
-            className="btn mt-4"
-          >
-            Play Again
-          </button>
-        </div>
-      )}
+      {game.won && (() => {
+        const bonus = timeBonus(elapsed)
+        const finalScore = game.score + bonus
+        return (
+          <div className="card p-6 mb-4 text-center">
+            <h2
+              className="text-2xl font-bold text-[var(--accent-primary)] mb-2"
+              style={{ fontFamily: 'var(--font-heading)' }}
+            >
+              Congratulations!
+            </h2>
+            <p className="text-[var(--text-secondary)]">
+              You won in {game.moves} moves and {formatTime(elapsed)}!
+            </p>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              Score: {game.score} + {bonus} time bonus = <span className="font-bold text-[var(--text-primary)]">{finalScore}</span>
+            </p>
+            <button
+              onClick={(e) => { e.stopPropagation(); newGame() }}
+              className="btn mt-4"
+            >
+              Play Again
+            </button>
+          </div>
+        )
+      })()}
 
       {/* Top row: Stock, Waste, Foundations */}
       <div className="flex items-start justify-between mb-2 gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
