@@ -55,6 +55,7 @@ function SolitaireCard({
   return (
     <div
       className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} ${colorClass} ${selected ? 'ring-2 ring-[var(--accent-primary)] shadow-lg' : ''} ${clickable && !dragging ? 'cursor-grab active:cursor-grabbing' : ''} ${dragging ? 'opacity-40' : ''}`}
+      style={{ alignItems: 'flex-start', justifyContent: 'flex-start', padding: small ? '2px 3px' : '3px 4px', lineHeight: 1 }}
       onClick={clickable ? onClick : undefined}
       onDoubleClick={clickable ? onDoubleClick : undefined}
       onMouseDown={clickable ? onDragStart : undefined}
@@ -578,6 +579,10 @@ export function SolitaireGame() {
                   marginTop: i === 0 ? 0 : 20,
                   boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
                   position: 'relative',
+                  alignItems: 'flex-start',
+                  justifyContent: 'flex-start',
+                  padding: small ? '2px 3px' : '3px 4px',
+                  lineHeight: 1,
                 }}
               >
                 {card.rank}{sym}
