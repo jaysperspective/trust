@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { MobileNav } from './mobile-nav'
 import { NavLinks } from './nav-links'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export function Header() {
   return (
@@ -11,6 +12,11 @@ export function Header() {
       <div className="container-page">
         {/* Masthead */}
         <div className="relative flex items-center justify-center py-3 md:py-4 border-b border-[var(--border-subtle)]">
+          {/* Theme toggle — absolute left */}
+          <div className="absolute left-0 top-1/2 -translate-y-1/2">
+            <ThemeToggle />
+          </div>
+
           <Link href="/" className="text-center">
             <span className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>
               URA PAGES

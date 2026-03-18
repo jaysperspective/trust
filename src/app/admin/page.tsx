@@ -25,6 +25,7 @@ async function getStats() {
       recentDownloads,
       videoCount,
       channelCount,
+      pendingSubmissions,
     ] = await Promise.all([
       prisma.post.count(),
       prisma.comment.count(),
@@ -47,6 +48,7 @@ async function getStats() {
       }),
       prisma.youTubeVideo.count(),
       prisma.youTubeChannel.count({ where: { enabled: true } }),
+      prisma.roundtableSubmission.count({ where: { status: 'pending' } }),
     ])
 
     return {
@@ -61,6 +63,7 @@ async function getStats() {
       recentDownloads,
       videoCount,
       channelCount,
+      pendingSubmissions,
     }
   } catch {
     return {
@@ -75,6 +78,7 @@ async function getStats() {
       recentDownloads: [],
       videoCount: 0,
       channelCount: 0,
+      pendingSubmissions: 0,
     }
   }
 }
@@ -107,7 +111,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-7 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-8 gap-3 mb-8">
           {[
             { label: 'Posts', value: stats.postCount, color: 'var(--accent-primary)' },
             { label: 'Comments', value: stats.commentCount, color: 'var(--accent-secondary)' },
@@ -116,6 +120,7 @@ export default async function AdminDashboard() {
             { label: 'Running', value: stats.runningTasks, color: 'var(--status-running)' },
             { label: '+downloads', value: stats.downloadCount, color: 'var(--accent-secondary)' },
             { label: 'Videos', value: stats.videoCount, color: 'var(--accent-primary)' },
+            { label: 'Pending Subs', value: stats.pendingSubmissions, color: 'var(--status-warning)' },
           ].map(({ label, value, color }) => (
             <Card key={label}>
               <CardContent className="p-4 text-center">
@@ -236,11 +241,20 @@ export default async function AdminDashboard() {
               <Link href="/admin/news">
                 <Button variant="secondary" size="sm">News Settings</Button>
               </Link>
+              <Link href="/admin/schedule">
+                <Button variant="secondary" size="sm">Content Schedule</Button>
+              </Link>
               <Link href="/admin/moderation">
                 <Button variant="secondary" size="sm">Moderation</Button>
               </Link>
               <Link href="/admin/videos">
                 <Button variant="secondary" size="sm">Video Channels</Button>
+              </Link>
+              <Link href="/admin/downloads">
+                <Button variant="secondary" size="sm">Download Analytics</Button>
+              </Link>
+              <Link href="/admin/submissions">
+                <Button variant="secondary" size="sm">Submissions</Button>
               </Link>
               <Link href="/agents">
                 <Button variant="ghost" size="sm">View Agents</Button>

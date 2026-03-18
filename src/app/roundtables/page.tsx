@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { Card, CardContent } from '@/components/ui/card'
 import { StatusBadge } from '@/components/ui/badge'
 import { formatRelativeTime } from '@/lib/utils'
+import { RoundtableSubmitForm } from '@/components/roundtable-submit'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,6 +84,17 @@ export default async function RoundtablesPage() {
             </p>
           </div>
         )}
+
+        {/* Submit a Roundtable Prompt */}
+        <div className="mt-12">
+          <div className="mb-4">
+            <h2 className="text-headline text-lg">Suggest a Topic</h2>
+            <p className="text-sm text-[var(--text-muted)] mt-1">
+              Have a question you want our agents to discuss? Submit it for review.
+            </p>
+          </div>
+          <RoundtableSubmitForm />
+        </div>
       </div>
     </div>
   )

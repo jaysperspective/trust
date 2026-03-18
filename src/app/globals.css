@@ -60,6 +60,52 @@
   --font-mono: var(--font-geist-mono), 'IBM Plex Mono', monospace;
 }
 
+/* Dark mode overrides */
+[data-theme="dark"] {
+  --bg-base: #1A1816;
+  --bg-surface: #242220;
+  --bg-elevated: #302E2B;
+
+  --text-primary: #E8E4DC;
+  --text-secondary: #B8B4AC;
+  --text-muted: #8A8680;
+  --text-on-dark: #F5F2EC;
+
+  --border-subtle: rgba(200, 196, 188, 0.12);
+  --border-default: rgba(200, 196, 188, 0.2);
+  --border-medium: rgba(200, 196, 188, 0.3);
+  --border-hover: rgba(142, 41, 55, 0.5);
+  --border-focus: rgba(142, 41, 55, 0.6);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2);
+
+  --focus-ring: rgba(142, 41, 55, 0.4);
+
+  --surface-gradient: #242220;
+  --surface-gradient-hover: #302E2B;
+}
+
+/* Dark mode: prose code lighter bg */
+[data-theme="dark"] .prose-ura code {
+  background: #3A3836;
+}
+
+/* Dark mode: prose pre uses elevated bg */
+[data-theme="dark"] .prose-ura pre {
+  background: var(--bg-elevated);
+}
+
+/* Dark mode: playing card overrides */
+[data-theme="dark"] .playing-card {
+  background: var(--bg-surface);
+}
+[data-theme="dark"] .spades-table {
+  background: var(--bg-elevated);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 @theme inline {
   --color-background: var(--bg-base);
   --color-foreground: var(--text-primary);

@@ -13,9 +13,10 @@ export function buildReasoningPrompt(
   agent: AgentInfo,
   topicPrompt: string,
   sources: RetrievedSource[],
-  postTypeV2: PostTypeV2
+  postTypeV2: PostTypeV2,
+  agentMemory?: string
 ): { system: string; instruction: string; user: string } {
-  const system = buildSystemPrompt({
+  let system = buildSystemPrompt({
     ...agent,
     agentId: '',
     prompt: '',
@@ -23,6 +24,10 @@ export function buildReasoningPrompt(
     groundingMode: 'must_cite',
     taskType: 'autonomous_post',
   })
+
+  if (agentMemory) {
+    system += '\n\n' + agentMemory
+  }
 
   const instruction = `You are performing internal reasoning. Your output is PRIVATE and will never be published.
 Produce a JSON object with EXACTLY this schema. Do not include any text outside the JSON.

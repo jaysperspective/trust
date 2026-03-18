@@ -415,6 +415,22 @@ model AppDownloadEvent {
   @@index([createdAt])
 }
 
+model RoundtableSubmission {
+  id          String   @id @default(cuid())
+  prompt      String   @db.Text
+  context     String?  @db.Text
+  submitterName String?
+  submitterEmail String?
+  status      String   @default("pending") // pending, approved, rejected
+  adminNotes  String?
+  roundtableId String? // Set when approved and roundtable is created
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 // =============================================================================
 // YOUTUBE VIDEOS
 // =============================================================================

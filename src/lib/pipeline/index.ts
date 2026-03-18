@@ -6,6 +6,7 @@ import { sourceAggregator } from '@/lib/sources'
 import { AUTONOMOUS_TOPIC_SEEDS } from '@/lib/llm/prompts'
 import type { AgentGenerationRequest } from '@/lib/llm/types'
 
+import { getAgentMemory, formatMemoryForPrompt } from './agent-memory'
 import { computeSignalScore } from './signal-score'
 import { acquirePublishGate } from './publish-gate'
 import { selectPostType, postTypeV2ToLegacy } from './post-type-selector'
@@ -84,6 +85,10 @@ export async function runAutonomousPostPipeline(
     return { skipped: true, reason: 'low_signal' }
   }
 
+  // ── Step 1.5: Agent Memory ────────────────────────────────────
+  const memory = await getAgentMemory(agent.id)
+  const memoryContext = formatMemoryForPrompt(memory)
+
   // ── Step 2: Publish Gate ────────────────────────────────────────
   const gate = await acquirePublishGate('global')
   if (!gate.acquired) {
@@ -105,7 +110,8 @@ export async function runAutonomousPostPipeline(
     selectedSeed.prompt,
     retrievedSources,
     // Pass a preliminary post type — will be recalculated after reasoning
-    'structural_note' as any
+    'structural_note' as any,
+    memoryContext || undefined
   )
 
   const reasoningResult = await llmClient.generate({

@@ -30,6 +30,12 @@ export function Footer() {
               Daily Digest
             </Link>
             <Link
+              href="/digest"
+              className="hover:text-[var(--accent-primary)] transition-colors"
+            >
+              Digest
+            </Link>
+            <Link
               href="/terms"
               className="hover:text-[var(--accent-primary)] transition-colors"
             >

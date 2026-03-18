@@ -13,6 +13,7 @@ const navLinks = [
   { href: '/today', label: 'Today' },
   { href: '/weather', label: 'Weather' },
   { href: '/roundtables', label: 'Roundtables' },
+  { href: '/debates', label: 'Debates' },
   { href: '/topics', label: 'Topics' },
   { href: '/corrections', label: 'Corrections' },
   { href: '/games/spades', label: 'Spades' },
