@@ -1,9 +1,20 @@
 'use client'
 
-import { useEffect, useCallback, useState, useRef } from 'react'
+import { useEffect, useCallback, useState, useRef, createContext, useContext } from 'react'
 import type { Card } from '@/lib/solitaire/types'
 import { isRed, suitSymbol, FOUNDATION_SUITS, timeBonus } from '@/lib/solitaire/engine'
 import { useSolitaireStore } from '@/lib/solitaire/store'
+
+/* ─── Card Size Context ───────────────────────── */
+
+interface CardSize {
+  w: number
+  h: number
+  fontSize: string
+  pad: string
+}
+
+const CardSizeCtx = createContext<CardSize>({ w: 48, h: 67, fontSize: '0.85rem', pad: '3px 4px' })
 
 /* ─── Drag State ──────────────────────────────── */
 
@@ -27,7 +38,6 @@ function SolitaireCard({
   onDragStart,
   selected,
   clickable,
-  small,
   dragging,
 }: {
   card: Card
@@ -36,13 +46,21 @@ function SolitaireCard({
   onDragStart?: (e: React.MouseEvent | React.TouchEvent) => void
   selected?: boolean
   clickable?: boolean
-  small?: boolean
   dragging?: boolean
 }) {
+  const sz = useContext(CardSizeCtx)
+
+  const baseStyle: React.CSSProperties = {
+    width: sz.w,
+    height: sz.h,
+    fontSize: sz.fontSize,
+  }
+
   if (!card.faceUp) {
     return (
       <div
-        className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} playing-card-back ${clickable ? 'cursor-pointer' : ''}`}
+        className={`playing-card playing-card-back ${clickable ? 'cursor-pointer' : ''}`}
+        style={baseStyle}
         onClick={clickable ? onClick : undefined}
       />
     )
@@ -54,8 +72,8 @@ function SolitaireCard({
 
   return (
     <div
-      className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} ${colorClass} ${selected ? 'ring-2 ring-[var(--accent-primary)] shadow-lg' : ''} ${clickable && !dragging ? 'cursor-grab active:cursor-grabbing' : ''} ${dragging ? 'opacity-40' : ''}`}
-      style={{ alignItems: 'flex-start', justifyContent: 'flex-start', padding: small ? '2px 3px' : '3px 4px', lineHeight: 1 }}
+      className={`playing-card ${colorClass} ${selected ? 'ring-2 ring-[var(--accent-primary)] shadow-lg' : ''} ${clickable && !dragging ? 'cursor-grab active:cursor-grabbing' : ''} ${dragging ? 'opacity-40' : ''}`}
+      style={{ ...baseStyle, alignItems: 'flex-start', justifyContent: 'flex-start', padding: sz.pad, lineHeight: 1 }}
       onClick={clickable ? onClick : undefined}
       onDoubleClick={clickable ? onDoubleClick : undefined}
       onMouseDown={clickable ? onDragStart : undefined}
@@ -66,15 +84,17 @@ function SolitaireCard({
   )
 }
 
-function EmptySlot({ label, onClick, small }: { label?: string; onClick?: () => void; small?: boolean }) {
+function EmptySlot({ label, onClick }: { label?: string; onClick?: () => void }) {
+  const sz = useContext(CardSizeCtx)
+
   return (
     <div
-      className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} border-dashed border-2 border-[var(--border-default)] bg-transparent ${onClick ? 'cursor-pointer' : ''}`}
-      style={{ boxShadow: 'none' }}
+      className={`playing-card border-dashed border-2 border-[var(--border-default)] bg-transparent ${onClick ? 'cursor-pointer' : ''}`}
+      style={{ width: sz.w, height: sz.h, fontSize: sz.fontSize, boxShadow: 'none' }}
       onClick={onClick}
     >
       {label && (
-        <span className="text-[var(--text-tertiary)] opacity-50 text-lg">{label}</span>
+        <span className="text-[var(--text-tertiary)] opacity-50" style={{ fontSize: '1em' }}>{label}</span>
       )}
     </div>
   )
@@ -114,6 +134,29 @@ export function SolitaireGame() {
   const foundationRefs = useRef<(HTMLDivElement | null)[]>([])
   const tableauRefs = useRef<(HTMLDivElement | null)[]>([])
 
+  // Calculate card size from container width
+  const [cardSize, setCardSize] = useState<CardSize>({ w: 48, h: 67, fontSize: '0.85rem', pad: '3px 4px' })
+
+  useEffect(() => {
+    const measure = () => {
+      const el = containerRef.current
+      if (!el) return
+      const containerW = el.clientWidth
+      // 7 columns with gaps (~4px each = 24px total gap)
+      const gap = 24
+      const cardW = Math.floor((containerW - gap) / 7)
+      // Clamp between 36 and 70
+      const w = Math.max(36, Math.min(70, cardW))
+      const h = Math.round(w * 1.4)
+      const fontSize = w < 40 ? '0.7rem' : w < 50 ? '0.8rem' : '0.9rem'
+      const pad = w < 40 ? '2px 3px' : '3px 5px'
+      setCardSize({ w, h, fontSize, pad })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
+
   // Start game on mount
   useEffect(() => {
     if (!game) newGame()
@@ -125,15 +168,6 @@ export function SolitaireGame() {
     const interval = setInterval(tick, 1000)
     return () => clearInterval(interval)
   }, [game, game?.won, tick])
-
-  // Responsive: detect small screen
-  const [useSmallCards, setUseSmallCards] = useState(false)
-  useEffect(() => {
-    const check = () => setUseSmallCards(window.innerWidth < 640)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
 
   // Drag handlers
   const startDrag = useCallback((
@@ -177,7 +211,6 @@ export function SolitaireGame() {
       const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX
       const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : e.clientY
 
-      // Check if it was just a click (minimal movement)
       const dx = Math.abs(clientX - drag.startX)
       const dy = Math.abs(clientY - drag.startY)
       if (dx < 5 && dy < 5) {
@@ -185,11 +218,9 @@ export function SolitaireGame() {
         return
       }
 
-      // Suppress the click event that follows mouseup
       didDragRef.current = true
       setTimeout(() => { didDragRef.current = false }, 0)
 
-      // Find drop target — check foundations first
       let handled = false
 
       for (let fi = 0; fi < 4; fi++) {
@@ -203,7 +234,6 @@ export function SolitaireGame() {
         }
       }
 
-      // Check tableau columns
       if (!handled) {
         for (let ci = 0; ci < 7; ci++) {
           const el = tableauRefs.current[ci]
@@ -240,7 +270,6 @@ export function SolitaireGame() {
 
   const handleStockMouseDown = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (!game || game.stock.length === 0) return
-    // Don't preventDefault — let click fire normally for simple clicks
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     const target = e.currentTarget as HTMLElement
@@ -277,7 +306,6 @@ export function SolitaireGame() {
 
     const onEnd = () => {
       cleanup()
-      // No drag happened — click handler will fire and draw normally
     }
 
     const cleanup = () => {
@@ -377,220 +405,219 @@ export function SolitaireGame() {
 
   if (!game) return null
 
-  const small = useSmallCards
-  // Card dimensions match CSS: sm=36x50, xs=30x42
-  const cardH = small ? 42 : 50
-  // Show enough of each face-up card to read rank+suit (~20px visible)
-  const faceUpOverlap = -(cardH - 20)
-  // Face-down cards just need a sliver (~8px visible)
-  const faceDownOverlap = -(cardH - 8)
+  // Overlap: show ~18px of face-up cards, ~8px of face-down
+  const faceUpOverlap = -(cardSize.h - 18)
+  const faceDownOverlap = -(cardSize.h - 8)
 
   return (
-    <div ref={containerRef} onClick={handleBackgroundClick} style={{ position: 'relative' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <h1
-            className="text-xl font-bold text-[var(--text-primary)]"
-            style={{ fontFamily: 'var(--font-heading)' }}
-          >
-            Solitaire
-          </h1>
-          <button
-            onClick={(e) => { e.stopPropagation(); newGame() }}
-            className="btn btn-sm"
-          >
-            New Game
-          </button>
-          {game.stock.length === 0 && game.waste.length === 0 && game.tableau.every(c => c.every(card => card.faceUp)) && !game.won && (
-            <button
-              onClick={(e) => { e.stopPropagation(); autoCompleteAll() }}
-              className="btn btn-sm"
-            >
-              Auto Complete
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
-          <span>Score: {game.score}</span>
-          <span>Moves: {game.moves}</span>
-          <span>Time: {formatTime(elapsed)}</span>
-        </div>
-      </div>
-
-      {/* Win message */}
-      {game.won && (() => {
-        const bonus = timeBonus(elapsed)
-        const finalScore = game.score + bonus
-        return (
-          <div className="card p-6 mb-4 text-center">
-            <h2
-              className="text-2xl font-bold text-[var(--accent-primary)] mb-2"
+    <CardSizeCtx.Provider value={cardSize}>
+      <div ref={containerRef} onClick={handleBackgroundClick} style={{ position: 'relative' }}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+          <div className="flex items-center gap-2">
+            <h1
+              className="text-lg sm:text-xl font-bold text-[var(--text-primary)]"
               style={{ fontFamily: 'var(--font-heading)' }}
             >
-              Congratulations!
-            </h2>
-            <p className="text-[var(--text-secondary)]">
-              You won in {game.moves} moves and {formatTime(elapsed)}!
-            </p>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
-              Score: {game.score} + {bonus} time bonus = <span className="font-bold text-[var(--text-primary)]">{finalScore}</span>
-            </p>
+              Solitaire
+            </h1>
             <button
               onClick={(e) => { e.stopPropagation(); newGame() }}
-              className="btn mt-4"
+              className="btn btn-sm"
             >
-              Play Again
+              New Game
             </button>
-          </div>
-        )
-      })()}
-
-      {/* Top row: Stock, Waste, Foundations */}
-      <div className="flex items-start justify-between mb-2 gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
-        {/* Stock and Waste */}
-        <div className="flex items-start gap-1">
-          {/* Stock */}
-          {game.stock.length > 0 ? (
-            <div
-              className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} playing-card-back cursor-pointer`}
-              onClick={handleStockClick}
-              onMouseDown={handleStockMouseDown}
-              onTouchStart={handleStockMouseDown}
-            />
-          ) : game.waste.length > 0 ? (
-            <div
-              className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} border-dashed border-2 border-[var(--border-default)] bg-transparent cursor-pointer`}
-              style={{ boxShadow: 'none' }}
-              onClick={handleStockClick}
-            >
-              <span className="text-[var(--text-tertiary)] text-lg">&#x21BB;</span>
-            </div>
-          ) : (
-            <EmptySlot small={small} />
-          )}
-
-          {/* Waste */}
-          {game.waste.length > 0 ? (
-            <SolitaireCard
-              card={game.waste[game.waste.length - 1]}
-              onClick={handleWasteClick}
-              onDoubleClick={handleWasteDoubleClick}
-              onDragStart={handleWasteDragStart}
-              selected={isCardSelected('waste')}
-              clickable
-              small={small}
-              dragging={isDragging('waste')}
-            />
-          ) : (
-            <EmptySlot small={small} />
-          )}
-        </div>
-
-        {/* Foundations */}
-        <div className="flex items-start gap-1">
-          {FOUNDATION_SUITS.map((suit, fi) => {
-            const foundation = game.foundations[fi]
-            return (
-              <div key={fi} ref={el => { foundationRefs.current[fi] = el }}>
-                {foundation.length > 0 ? (
-                  <SolitaireCard
-                    card={foundation[foundation.length - 1]}
-                    onClick={() => handleFoundationClick(fi)}
-                    clickable={!!selectedCard}
-                    small={small}
-                  />
-                ) : (
-                  <EmptySlot
-                    label={suitSymbol(suit)}
-                    onClick={() => handleFoundationClick(fi)}
-                    small={small}
-                  />
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Tableau */}
-      <div
-        className="grid grid-cols-7 gap-0.5 sm:gap-1"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {game.tableau.map((column, colIndex) => (
-          <div
-            key={colIndex}
-            ref={el => { tableauRefs.current[colIndex] = el }}
-            className="flex flex-col items-center min-h-[60px]"
-          >
-            {column.length === 0 ? (
-              <EmptySlot
-                onClick={() => handleEmptyTableauClick(colIndex)}
-                small={small}
-              />
-            ) : (
-              column.map((card, cardIndex) => (
-                <div
-                  key={cardIndex}
-                  style={{
-                    marginTop: cardIndex === 0 ? 0 : card.faceUp ? faceUpOverlap : faceDownOverlap,
-                    zIndex: cardIndex,
-                    position: 'relative',
-                  }}
-                >
-                  <SolitaireCard
-                    card={card}
-                    onClick={() => handleTableauCardClick(colIndex, cardIndex)}
-                    onDoubleClick={() => handleTableauDoubleClick(colIndex, cardIndex)}
-                    onDragStart={(e) => handleTableauDragStart(e, colIndex, cardIndex)}
-                    selected={isCardSelected('tableau', colIndex, cardIndex)}
-                    clickable={card.faceUp}
-                    small={small}
-                    dragging={isDragging('tableau', colIndex, cardIndex)}
-                  />
-                </div>
-              ))
+            {game.stock.length === 0 && game.waste.length === 0 && game.tableau.every(c => c.every(card => card.faceUp)) && !game.won && (
+              <button
+                onClick={(e) => { e.stopPropagation(); autoCompleteAll() }}
+                className="btn btn-sm"
+              >
+                Auto Complete
+              </button>
             )}
           </div>
-        ))}
-      </div>
-
-      {/* Drag ghost */}
-      {drag && (
-        <div
-          style={{
-            position: 'fixed',
-            left: dragPos.x - drag.offsetX,
-            top: dragPos.y - drag.offsetY,
-            zIndex: 10000,
-            pointerEvents: 'none',
-            touchAction: 'none',
-          }}
-        >
-          {drag.cards.map((card, i) => {
-            const red = isRed(card.suit)
-            const sym = suitSymbol(card.suit)
-            return (
-              <div
-                key={i}
-                className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} ${red ? 'playing-card-red' : 'playing-card-black'}`}
-                style={{
-                  marginTop: i === 0 ? 0 : 20,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-                  position: 'relative',
-                  alignItems: 'flex-start',
-                  justifyContent: 'flex-start',
-                  padding: small ? '2px 3px' : '3px 4px',
-                  lineHeight: 1,
-                }}
-              >
-                {card.rank}{sym}
-              </div>
-            )
-          })}
+          <div className="flex items-center gap-3 text-xs sm:text-sm text-[var(--text-secondary)]">
+            <span>Score: {game.score}</span>
+            <span>Moves: {game.moves}</span>
+            <span>{formatTime(elapsed)}</span>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Win message */}
+        {game.won && (() => {
+          const bonus = timeBonus(elapsed)
+          const finalScore = game.score + bonus
+          return (
+            <div className="card p-4 sm:p-6 mb-3 text-center">
+              <h2
+                className="text-xl sm:text-2xl font-bold text-[var(--accent-primary)] mb-2"
+                style={{ fontFamily: 'var(--font-heading)' }}
+              >
+                Congratulations!
+              </h2>
+              <p className="text-sm text-[var(--text-secondary)]">
+                You won in {game.moves} moves and {formatTime(elapsed)}!
+              </p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                Score: {game.score} + {bonus} time bonus = <span className="font-bold text-[var(--text-primary)]">{finalScore}</span>
+              </p>
+              <button
+                onClick={(e) => { e.stopPropagation(); newGame() }}
+                className="btn mt-3"
+              >
+                Play Again
+              </button>
+            </div>
+          )
+        })()}
+
+        {/* Top row: Stock, Waste, Foundations */}
+        <div className="flex items-start justify-between mb-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          {/* Stock and Waste */}
+          <div className="flex items-start gap-1">
+            {/* Stock */}
+            {game.stock.length > 0 ? (
+              <div
+                className="playing-card playing-card-back cursor-pointer"
+                style={{ width: cardSize.w, height: cardSize.h }}
+                onClick={handleStockClick}
+                onMouseDown={handleStockMouseDown}
+                onTouchStart={handleStockMouseDown}
+              />
+            ) : game.waste.length > 0 ? (
+              <div
+                className="playing-card border-dashed border-2 border-[var(--border-default)] bg-transparent cursor-pointer"
+                style={{ width: cardSize.w, height: cardSize.h, boxShadow: 'none' }}
+                onClick={handleStockClick}
+              >
+                <span className="text-[var(--text-tertiary)]" style={{ fontSize: cardSize.fontSize }}>&#x21BB;</span>
+              </div>
+            ) : (
+              <EmptySlot />
+            )}
+
+            {/* Waste */}
+            {game.waste.length > 0 ? (
+              <SolitaireCard
+                card={game.waste[game.waste.length - 1]}
+                onClick={handleWasteClick}
+                onDoubleClick={handleWasteDoubleClick}
+                onDragStart={handleWasteDragStart}
+                selected={isCardSelected('waste')}
+                clickable
+                dragging={isDragging('waste')}
+              />
+            ) : (
+              <EmptySlot />
+            )}
+          </div>
+
+          {/* Foundations */}
+          <div className="flex items-start gap-1">
+            {FOUNDATION_SUITS.map((suit, fi) => {
+              const foundation = game.foundations[fi]
+              return (
+                <div key={fi} ref={el => { foundationRefs.current[fi] = el }}>
+                  {foundation.length > 0 ? (
+                    <SolitaireCard
+                      card={foundation[foundation.length - 1]}
+                      onClick={() => handleFoundationClick(fi)}
+                      clickable={!!selectedCard}
+                    />
+                  ) : (
+                    <EmptySlot
+                      label={suitSymbol(suit)}
+                      onClick={() => handleFoundationClick(fi)}
+                    />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Tableau */}
+        <div
+          className="grid grid-cols-7"
+          style={{ gap: Math.max(2, Math.floor(cardSize.w * 0.06)) }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {game.tableau.map((column, colIndex) => (
+            <div
+              key={colIndex}
+              ref={el => { tableauRefs.current[colIndex] = el }}
+              className="flex flex-col items-center"
+              style={{ minHeight: cardSize.h + 10 }}
+            >
+              {column.length === 0 ? (
+                <EmptySlot
+                  onClick={() => handleEmptyTableauClick(colIndex)}
+                />
+              ) : (
+                column.map((card, cardIndex) => (
+                  <div
+                    key={cardIndex}
+                    style={{
+                      marginTop: cardIndex === 0 ? 0 : card.faceUp ? faceUpOverlap : faceDownOverlap,
+                      zIndex: cardIndex,
+                      position: 'relative',
+                    }}
+                  >
+                    <SolitaireCard
+                      card={card}
+                      onClick={() => handleTableauCardClick(colIndex, cardIndex)}
+                      onDoubleClick={() => handleTableauDoubleClick(colIndex, cardIndex)}
+                      onDragStart={(e) => handleTableauDragStart(e, colIndex, cardIndex)}
+                      selected={isCardSelected('tableau', colIndex, cardIndex)}
+                      clickable={card.faceUp}
+                      dragging={isDragging('tableau', colIndex, cardIndex)}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Drag ghost */}
+        {drag && (
+          <div
+            style={{
+              position: 'fixed',
+              left: dragPos.x - drag.offsetX,
+              top: dragPos.y - drag.offsetY,
+              zIndex: 10000,
+              pointerEvents: 'none',
+              touchAction: 'none',
+            }}
+          >
+            {drag.cards.map((card, i) => {
+              const red = isRed(card.suit)
+              const sym = suitSymbol(card.suit)
+              return (
+                <div
+                  key={i}
+                  className={`playing-card ${red ? 'playing-card-red' : 'playing-card-black'}`}
+                  style={{
+                    width: cardSize.w,
+                    height: cardSize.h,
+                    fontSize: cardSize.fontSize,
+                    marginTop: i === 0 ? 0 : 18,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+                    position: 'relative',
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                    padding: cardSize.pad,
+                    lineHeight: 1,
+                  }}
+                >
+                  {card.rank}{sym}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </CardSizeCtx.Provider>
   )
 }
