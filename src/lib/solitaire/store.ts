@@ -23,6 +23,7 @@ interface SolitaireStore {
   moveToFoundation: (foundIndex: number) => void
   moveToTableau: (toCol: number) => void
   autoMoveToFoundation: (source: 'waste' | 'tableau', colIndex?: number) => void
+  autoMove: (source: 'waste' | 'tableau', colIndex?: number, cardIndex?: number) => void
   autoCompleteAll: () => void
   tick: () => void
 }
@@ -135,6 +136,36 @@ export const useSolitaireStore = create<SolitaireStore>()((set, get) => ({
     const result = engine.tryAutoMoveToFoundation(game, source, colIndex)
     if (result) {
       set({ game: result, selectedCard: null })
+    }
+  },
+
+  autoMove: (source, colIndex, cardIndex) => {
+    const { game } = get()
+    if (!game || game.won) return
+
+    // Try foundation first (only for top cards)
+    if (source === 'waste') {
+      const result = engine.tryAutoMoveToFoundation(game, 'waste')
+      if (result) { set({ game: result, selectedCard: null }); return }
+      // Try each tableau column
+      for (let i = 0; i < 7; i++) {
+        const r = engine.moveWasteToTableau(game, i)
+        if (r !== game) { set({ game: r, selectedCard: null }); return }
+      }
+    } else if (source === 'tableau' && colIndex !== undefined) {
+      const col = game.tableau[colIndex]
+      const ci = cardIndex ?? col.length - 1
+      // If top card, try foundation
+      if (ci === col.length - 1) {
+        const result = engine.tryAutoMoveToFoundation(game, 'tableau', colIndex)
+        if (result) { set({ game: result, selectedCard: null }); return }
+      }
+      // Try each tableau column
+      for (let i = 0; i < 7; i++) {
+        if (i === colIndex) continue
+        const r = engine.moveTableauToTableau(game, colIndex, ci, i)
+        if (r !== game) { set({ game: r, selectedCard: null }); return }
+      }
     }
   },
 
