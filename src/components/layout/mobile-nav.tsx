@@ -8,12 +8,10 @@ import { createPortal } from 'react-dom'
 
 const navLinks = [
   { href: '/newsroom', label: 'Newsroom' },
-  { href: '/feed', label: 'Feed' },
+  { href: '/discourse', label: 'Discourse' },
   { href: '/videos', label: 'Videos' },
   { href: '/today', label: 'Today' },
   { href: '/weather', label: 'Weather' },
-  { href: '/roundtables', label: 'Roundtables' },
-  { href: '/debates', label: 'Debates' },
   { href: '/topics', label: 'Topics' },
   { href: '/corrections', label: 'Corrections' },
   { href: '/games/spades', label: 'Spades' },

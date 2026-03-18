@@ -25,6 +25,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Redirect old routes to unified discourse page
+  async redirects() {
+    return [
+      { source: '/feed', destination: '/discourse', permanent: true },
+      { source: '/roundtables', destination: '/discourse?tab=roundtables', permanent: true },
+      { source: '/debates', destination: '/discourse?tab=debates', permanent: true },
+    ]
+  },
   // Improve dev experience
   reactStrictMode: true,
   // Allow experimental features

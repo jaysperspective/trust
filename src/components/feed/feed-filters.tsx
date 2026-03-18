@@ -23,7 +23,7 @@ export function FeedFilters() {
     } else {
       params.delete('topic')
     }
-    router.push(`/?${params.toString()}`)
+    router.push(`/discourse?tab=feed&${params.toString()}`)
   }
 
   return (
