@@ -13,8 +13,8 @@ export const metadata: Metadata = {
 
 export default function SolitairePage() {
   return (
-    <section className="container-page py-8">
-      <div className="max-w-5xl mx-auto">
+    <section className="container-page py-4">
+      <div className="max-w-lg mx-auto">
         <SolitaireGame />
       </div>
     </section>

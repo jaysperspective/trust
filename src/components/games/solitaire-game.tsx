@@ -25,7 +25,7 @@ function SolitaireCard({
   if (!card.faceUp) {
     return (
       <div
-        className={`playing-card ${small ? 'playing-card-sm' : 'playing-card-md'} playing-card-back ${clickable ? 'cursor-pointer' : ''}`}
+        className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} playing-card-back ${clickable ? 'cursor-pointer' : ''}`}
         onClick={clickable ? onClick : undefined}
       />
     )
@@ -37,7 +37,7 @@ function SolitaireCard({
 
   return (
     <div
-      className={`playing-card ${small ? 'playing-card-sm' : 'playing-card-md'} ${colorClass} ${selected ? 'ring-2 ring-[var(--accent-primary)] shadow-lg' : ''} ${clickable ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
+      className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} ${colorClass} ${selected ? 'ring-2 ring-[var(--accent-primary)] shadow-lg' : ''} ${clickable ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
       onClick={clickable ? onClick : undefined}
       onDoubleClick={clickable ? onDoubleClick : undefined}
     >
@@ -49,7 +49,7 @@ function SolitaireCard({
 function EmptySlot({ label, onClick, small }: { label?: string; onClick?: () => void; small?: boolean }) {
   return (
     <div
-      className={`playing-card ${small ? 'playing-card-sm' : 'playing-card-md'} border-dashed border-2 border-[var(--border-default)] bg-transparent ${onClick ? 'cursor-pointer' : ''}`}
+      className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} border-dashed border-2 border-[var(--border-default)] bg-transparent ${onClick ? 'cursor-pointer' : ''}`}
       style={{ boxShadow: 'none' }}
       onClick={onClick}
     >
@@ -175,8 +175,8 @@ export function SolitaireGame() {
   return (
     <div onClick={handleBackgroundClick}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
           <h1
             className="text-xl font-bold text-[var(--text-primary)]"
             style={{ fontFamily: 'var(--font-heading)' }}
@@ -226,18 +226,18 @@ export function SolitaireGame() {
       )}
 
       {/* Top row: Stock, Waste, Foundations */}
-      <div className="flex items-start justify-between mb-4 gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-start justify-between mb-2 gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
         {/* Stock and Waste */}
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-1">
           {/* Stock */}
           {game.stock.length > 0 ? (
             <div
-              className={`playing-card ${small ? 'playing-card-sm' : 'playing-card-md'} playing-card-back cursor-pointer`}
+              className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} playing-card-back cursor-pointer`}
               onClick={handleStockClick}
             />
           ) : game.waste.length > 0 ? (
             <div
-              className={`playing-card ${small ? 'playing-card-sm' : 'playing-card-md'} border-dashed border-2 border-[var(--border-default)] bg-transparent cursor-pointer`}
+              className={`playing-card ${small ? 'playing-card-xs' : 'playing-card-sm'} border-dashed border-2 border-[var(--border-default)] bg-transparent cursor-pointer`}
               style={{ boxShadow: 'none' }}
               onClick={handleStockClick}
             >
@@ -263,7 +263,7 @@ export function SolitaireGame() {
         </div>
 
         {/* Foundations */}
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-1">
           {FOUNDATION_SUITS.map((suit, fi) => {
             const foundation = game.foundations[fi]
             if (foundation.length > 0) {
@@ -292,7 +292,7 @@ export function SolitaireGame() {
 
       {/* Tableau */}
       <div
-        className="grid grid-cols-7 gap-1 sm:gap-2"
+        className="grid grid-cols-7 gap-0.5 sm:gap-1"
         onClick={(e) => e.stopPropagation()}
       >
         {game.tableau.map((column, colIndex) => (
@@ -307,7 +307,7 @@ export function SolitaireGame() {
                 <div
                   key={cardIndex}
                   style={{
-                    marginTop: cardIndex === 0 ? 0 : card.faceUp ? (small ? -38 : -48) : (small ? -42 : -58),
+                    marginTop: cardIndex === 0 ? 0 : card.faceUp ? (small ? -30 : -35) : (small ? -35 : -42),
                     zIndex: cardIndex,
                     position: 'relative',
                   }}

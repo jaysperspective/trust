@@ -697,6 +697,11 @@ html, body {
 }
 
 /* Card sizes */
+.playing-card-xs {
+  width: 30px;
+  height: 42px;
+  font-size: 0.65rem;
+}
 .playing-card-sm {
   width: 36px;
   height: 50px;
