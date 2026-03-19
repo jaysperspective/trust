@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Support | URA Pages',
-  description: 'Get help with URA Pages',
+  title: 'Support | plustrust',
+  description: 'Get help with plustrust',
 }
 
 export default function SupportPage() {
@@ -10,7 +10,7 @@ export default function SupportPage() {
     <div className="container-page py-12">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-3xl mt-1.5">Support</h1>
         </div>
 

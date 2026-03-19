@@ -1,64 +1,35 @@
 import type { SourceProvider, SourceResult } from './types'
 
-// RSS feeds curated for social science, culture, activism, discovery,
-// and journalism that goes behind the veil of society.
-const DEFAULT_RSS_FEEDS = [
-  // Investigative & adversarial journalism
-  { url: 'https://theintercept.com/feed/?rss', publisher: 'The Intercept' },
-  { url: 'https://www.propublica.org/feeds/propublica/main', publisher: 'ProPublica' },
-  { url: 'https://themarkup.org/feeds/rss.xml', publisher: 'The Markup' },
-  { url: 'https://phillewis.substack.com/feed', publisher: 'Phil Lewis' },
-  { url: 'https://heresthedealwithkg.substack.com/feed', publisher: "Here's The Deal with KG" },
-  { url: 'https://tirreab.substack.com/feed', publisher: 'Tirrea B' },
-  { url: 'https://laurengrubaughthomas.substack.com/feed', publisher: 'Lauren Grubaugh Thomas' },
-  { url: 'https://healthyfutures.substack.com/feed', publisher: 'Healthy Futures' },
-  { url: 'https://shedrinkswater.substack.com/feed', publisher: 'smoothie' },
+// RSS feeds — add new sources here as { url, publisher } entries
+const DEFAULT_RSS_FEEDS: { url: string; publisher: string }[] = [
+  // Hip Hop
+  { url: 'https://www.xxlmag.com/feed/', publisher: 'XXL Magazine' },
+  { url: 'https://www.hotnewhiphop.com/feed', publisher: 'HotNewHipHop' },
+  { url: 'https://allhiphop.com/feed/', publisher: 'AllHipHop' },
+  { url: 'https://thesource.com/feed/', publisher: 'The Source' },
+  { url: 'https://hiphopdx.com/rss/news.xml', publisher: 'HipHopDX' },
+  { url: 'https://rapradar.com/feed/', publisher: 'Rap Radar' },
+  { url: 'https://hiphopwired.com/feed/', publisher: 'Hip Hop Wired' },
+  { url: 'https://hiphop-n-more.com/feed/', publisher: 'Hip Hop-N-More' },
+  { url: 'https://www.2dopeboyz.com/feed/', publisher: '2DopeBoyz' },
+  { url: 'https://ambrosiaforheads.com/feed/', publisher: 'Ambrosia For Heads' },
+  { url: 'https://www.passionweiss.com/feed/', publisher: 'Passion of the Weiss' },
+  { url: 'https://www.elevator.world/feed/', publisher: 'ELEVATOR' },
 
-  // Social science & research
-  { url: 'https://www.pewresearch.org/feed', publisher: 'Pew Research Center' },
-  { url: 'https://theconversation.com/us/articles.atom', publisher: 'The Conversation' },
-  { url: 'https://undark.org/feed', publisher: 'Undark' },
+  // R&B / Soul
+  { url: 'https://thisisrnb.com/feed/', publisher: 'ThisIsRnB' },
+  { url: 'https://youknowigotsoul.com/feed', publisher: 'YouKnowIGotSoul' },
+  { url: 'https://www.rap-up.com/feed/', publisher: 'Rap-Up' },
+  { url: 'https://www.soulinstereo.com/feed', publisher: 'Soul In Stereo' },
 
-  // Culture, philosophy & ideas
-  { url: 'https://aeon.co/feed.rss', publisher: 'Aeon' },
-  { url: 'https://www.aljazeera.com/xml/rss/all.xml', publisher: 'Al Jazeera' },
-  { url: 'https://restofworld.org/feed/latest', publisher: 'Rest of World' },
-  { url: 'https://globalvoices.org/feed/', publisher: 'Global Voices' },
-
-  // Activism, politics & progressive lens
-  { url: 'https://jacobin.com/feed', publisher: 'Jacobin' },
-  { url: 'https://www.thenation.com/feed/?post_type=article', publisher: 'The Nation' },
-  { url: 'https://www.commondreams.org/feeds/feed.rss', publisher: 'Common Dreams' },
-  { url: 'http://www.democracynow.org/democracynow.rss', publisher: 'Democracy Now!' },
-
-  // Black journalism, culture & community
-  { url: 'https://www.theroot.com/rss', publisher: 'The Root' },
-  { url: 'https://capitalbnews.org/feed', publisher: 'Capital B News' },
-{ url: 'https://thegrio.com/feed', publisher: 'TheGrio' },
-  { url: 'https://blackenterprise.com/feed', publisher: 'Black Enterprise' },
-  { url: 'https://afro.com/feed', publisher: 'AFRO News' },
-  { url: 'https://www.blackagendareport.com/rss.xml', publisher: 'Black Agenda Report' },
-  { url: 'https://blavity.com/feed', publisher: 'Blavity' },
-
-  // Science & discovery
-  { url: 'https://www.space.com/feeds/all', publisher: 'Space.com' },
-  { url: 'https://www.nasa.gov/news-release/feed/', publisher: 'NASA' },
-  { url: 'https://feeds.arstechnica.com/arstechnica/science', publisher: 'Ars Technica' },
-
-  // News & politics
-  { url: 'https://www.huffpost.com/section/us-news/feed', publisher: 'HuffPost' },
-  { url: 'https://www.huffpost.com/voices/black-voices/feed', publisher: 'HuffPost Black Voices' },
-  { url: 'https://www.politico.com/rss/politicopicks.xml', publisher: 'Politico' },
-
-  // Podcasts
-  { url: 'https://feeds.simplecast.com/54nAGcIl', publisher: 'The Daily (NYT)' },
-
-  // Local news
-  { url: 'https://api.axios.com/feed/?topic=richmond', publisher: 'Axios Richmond' },
-
-  // Global wire (kept for depth)
-  { url: 'https://www.theguardian.com/world/rss', publisher: 'The Guardian' },
-  { url: 'https://feeds.npr.org/1001/rss.xml', publisher: 'NPR' },
+  // Broader music (strong hip hop & R&B coverage)
+  { url: 'https://pitchfork.com/feed/feed-news/rss', publisher: 'Pitchfork' },
+  { url: 'https://www.billboard.com/feed/', publisher: 'Billboard' },
+  { url: 'https://www.vibe.com/feed/', publisher: 'VIBE' },
+  { url: 'https://www.thefader.com/feed.rss', publisher: 'The FADER' },
+  { url: 'https://www.stereogum.com/feed/', publisher: 'Stereogum' },
+  { url: 'https://uproxx.com/music/feed/', publisher: 'Uproxx Music' },
+  { url: 'https://djbooth.net/feed', publisher: 'DJBooth' },
 ]
 
 interface RSSItem {
@@ -166,7 +137,7 @@ export class RSSProvider implements SourceProvider {
     try {
       const response = await fetch(feed.url, {
         headers: {
-          'User-Agent': 'URAPages/1.0 (AI Social Network)'
+          'User-Agent': 'plustrust/1.0 (AI Social Network)'
         }
       })
 

@@ -165,7 +165,7 @@ export default function TodayPage() {
     <section className="container-page py-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <div className="section-label">URA PAGES</div>
+          <div className="section-label">PLUSTRUST</div>
           <h1 className="text-headline text-2xl mt-1.5">Today</h1>
           <p className="text-meta mt-1">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}

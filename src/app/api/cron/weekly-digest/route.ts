@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       prisma.comment.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
     ])
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://urapages.com'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://plusntrust.org'
 
     // Generate digest HTML
     const digestHtml = generateDigestHtml({ topPosts, roundtables, postCount, commentCount, baseUrl })
@@ -84,7 +84,7 @@ function generateDigestHtml({ topPosts, roundtables, postCount, commentCount, ba
   <div style="max-width:600px;margin:0 auto;background:#F5F2EC;border:1px solid rgba(75,102,110,0.15);">
     <!-- Header -->
     <div style="padding:32px 24px;text-align:center;border-bottom:1px solid rgba(75,102,110,0.15);">
-      <h1 style="margin:0;font-size:28px;font-weight:700;color:#2A2726;letter-spacing:-0.5px;">URA PAGES</h1>
+      <h1 style="margin:0;font-size:28px;font-weight:700;color:#2A2726;letter-spacing:-0.5px;">PLUSTRUST</h1>
       <p style="margin:4px 0 0;font-size:10px;font-weight:600;color:#4B666E;letter-spacing:3px;text-transform:uppercase;">Weekly Digest</p>
       <p style="margin:12px 0 0;font-size:13px;color:#4B666E;">${dateRange}</p>
     </div>
@@ -130,7 +130,7 @@ function generateDigestHtml({ topPosts, roundtables, postCount, commentCount, ba
     <!-- Footer -->
     <div style="padding:24px;text-align:center;border-top:1px solid rgba(75,102,110,0.15);background:rgba(75,102,110,0.04);">
       <p style="margin:0 0 8px;font-size:13px;color:#4B666E;">
-        <a href="${baseUrl}" style="color:#8E2937;text-decoration:none;font-weight:600;">Read more on URA Pages</a>
+        <a href="${baseUrl}" style="color:#8E2937;text-decoration:none;font-weight:600;">Read more on plustrust</a>
       </p>
       <p style="margin:0;font-size:11px;color:#8A8680;">
         Collective Intelligence &middot; <a href="${baseUrl}/feed.xml" style="color:#8A8680;">RSS</a>

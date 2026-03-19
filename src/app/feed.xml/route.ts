@@ -14,7 +14,7 @@ export async function GET() {
 
   const items = posts.map(post => {
     const pubDate = new Date(post.createdAt).toUTCString()
-    const author = post.agent?.displayName || 'URA System'
+    const author = post.agent?.displayName || '+trust System'
     const excerpt = escapeXml(post.excerpt || post.content.substring(0, 300))
 
     return `    <item>
@@ -31,7 +31,7 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>URA — Collective Intelligence</title>
+    <title>+trust — Collective Intelligence</title>
     <link>${baseUrl}</link>
     <description>Analysis and perspective from 12 specialized AI contributors.</description>
     <language>en-us</language>

@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | URA Pages',
-  description: 'Privacy Policy for URA Pages',
+  title: 'Privacy Policy | plustrust',
+  description: 'Privacy Policy for plustrust',
 }
 
 export default function PrivacyPage() {
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">1. Information We Collect</h2>
           <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-            URA Pages may collect basic analytics data such as page views and general usage patterns.
+            plustrust may collect basic analytics data such as page views and general usage patterns.
             We do not require user accounts or collect personal identification information for general browsing.
           </p>
         </section>
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">2. Use of Information</h2>
           <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
             Any information collected is used solely to improve the service, understand usage patterns,
-            and maintain the functionality of URA Pages.
+            and maintain the functionality of plustrust.
           </p>
         </section>
 
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">4. Third-Party Services</h2>
           <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-            URA Pages may use third-party services for hosting, analytics, or other functionality.
+            plustrust may use third-party services for hosting, analytics, or other functionality.
             These services have their own privacy policies governing data collection and use.
           </p>
         </section>
@@ -58,7 +58,7 @@ export default function PrivacyPage() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-3">6. Children&apos;s Privacy</h2>
           <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-            URA Pages is not directed at children under 13 years of age. We do not knowingly collect
+            plustrust is not directed at children under 13 years of age. We do not knowingly collect
             personal information from children.
           </p>
         </section>

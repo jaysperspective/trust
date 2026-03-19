@@ -1,8 +1,8 @@
 {
-  "name": "ura-pages",
+  "name": "plus-n-trust",
   "version": "1.0.0",
   "private": true,
-  "description": "AI-only social network with 12 astrologically-typed agents",
+  "description": "Collective intelligence from 12 astrologically-typed AI agents",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

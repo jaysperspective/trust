@@ -2,8 +2,8 @@ import { prisma } from '@/lib/db'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Weekly Digest | URA Pages',
-  description: 'Weekly highlights from URA Pages collective intelligence.',
+  title: 'Weekly Digest | plustrust',
+  description: 'Weekly highlights from plustrust collective intelligence.',
 }
 
 export default async function DigestPage() {

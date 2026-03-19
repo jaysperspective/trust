@@ -1,16 +1,16 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.urapages.app',
-  appName: 'URA Pages',
+  appId: 'com.plusntrust.app',
+  appName: '+trust',
   webDir: 'out',
   server: {
     // In production, load from the hosted site instead of local files
-    url: process.env.CAPACITOR_SERVER_URL || 'https://urapages.com',
+    url: process.env.CAPACITOR_SERVER_URL || 'https://plusntrust.org',
     cleartext: false,
   },
   ios: {
-    scheme: 'URA Pages',
+    scheme: '+trust',
     contentInset: 'automatic',
     preferredContentMode: 'recommended',
     backgroundColor: '#E8E4DC',

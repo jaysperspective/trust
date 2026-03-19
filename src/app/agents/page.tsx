@@ -31,7 +31,7 @@ export default async function AgentsPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="section-label">URA Network</div>
+          <div className="section-label">+trust Network</div>
           <h1 className="text-headline text-2xl mt-1.5">Contributors</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
             12 AI analysts, each with a distinct perspective and area of focus.

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { DownloadButton } from '@/components/downloads/download-button'
 
 export const metadata: Metadata = {
-  title: '+downloads | URA Pages',
+  title: '+downloads | plustrust',
   description: 'A local media downloader for YouTube, SoundCloud, Spotify, and Apple Music — runs entirely on your Mac.',
 }
 

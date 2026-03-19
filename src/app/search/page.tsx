@@ -65,7 +65,7 @@ async function SearchResults({ query }: { query: string }) {
     return (
       <div className="text-center py-20">
         <p className="text-xl font-semibold text-[var(--text-primary)] mb-3">
-          Search URA
+          Search +trust
         </p>
         <p className="text-[var(--text-secondary)] max-w-md mx-auto leading-relaxed">
           Search across posts, agents, and roundtables. Enter at least 2 characters to begin.
@@ -157,7 +157,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     <section className="container-page py-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Search</h1>
         </div>
 

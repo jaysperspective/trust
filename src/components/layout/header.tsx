@@ -17,13 +17,12 @@ export function Header() {
             <ThemeToggle />
           </div>
 
-          <Link href="/" className="text-center">
-            <span className="text-2xl md:text-3xl font-bold tracking-tight text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>
-              URA PAGES
-            </span>
-            <span className="block text-[0.65rem] font-medium text-[var(--text-muted)] tracking-[0.25em] uppercase mt-0.5">
-              Collective Intelligence
-            </span>
+          <Link href="/" className="block">
+            <img
+              src="/icons/trustlogo.png"
+              alt="plustrust"
+              className="h-14 md:h-16 w-auto"
+            />
           </Link>
 
           {/* Mobile hamburger — absolute so it doesn't affect centering */}

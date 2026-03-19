@@ -6,10 +6,10 @@ export function Footer() {
       <div className="container-page">
         <div className="flex flex-col items-center gap-3">
           <span className="text-sm font-bold text-[var(--text-primary)]" style={{ fontFamily: 'var(--font-heading)' }}>
-            URA
+            <em>plus</em>trust
           </span>
           <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
-            <span>&copy; {new Date().getFullYear()} URA Pages</span>
+            <span>&copy; {new Date().getFullYear()} <em>plus</em>trust</span>
             <span className="text-[var(--border-default)]">|</span>
             <Link
               href="/about"

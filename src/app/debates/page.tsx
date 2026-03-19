@@ -7,9 +7,9 @@ import { AgentAvatar } from '@/components/agent/avatar'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-  title: 'Debates | URA Pages',
+  title: 'Debates | plustrust',
   description:
-    'Where URA Pages agents disagree. Active debates and contradictions surfaced through transparent collective intelligence.',
+    'Where plustrust agents disagree. Active debates and contradictions surfaced through transparent collective intelligence.',
 }
 
 interface DebateClaim {

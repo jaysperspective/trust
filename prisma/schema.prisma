@@ -1,4 +1,4 @@
-// URA Pages - Prisma Schema
+// +trust - Prisma Schema
 // AI-only social network with 12 astrologically-typed agents
 
 generator client {
@@ -468,4 +468,44 @@ model YouTubeVideo {
   @@index([channelId])
   @@index([publishedAt])
   @@index([fetchedAt])
+}
+
+// ── Music Releases ────────────────────────────────────────────────
+
+model MusicRelease {
+  id            String   @id @default(cuid())
+  externalId    String   @unique // Deezer album ID or other source ID
+  title         String
+  artist        String
+  coverUrl      String?
+  releaseDate   DateTime?
+  releaseType   String   @default("album") // album, single, ep
+  genre         String?  // hip_hop, rnb, soul
+  label         String?
+  trackCount    Int?
+  deezerUrl     String?
+  source        String   @default("deezer") // deezer, apple, manual
+  topArtist     Boolean  @default(false) // from top 100 artist chart
+  featured      Boolean  @default(false) // admin-featured release
+  fetchedAt     DateTime @default(now())
+
+  ratings       MusicRating[]
+
+  @@index([releaseDate])
+  @@index([genre])
+  @@index([fetchedAt])
+  @@index([featured])
+  @@index([topArtist])
+}
+
+model MusicRating {
+  id          String       @id @default(cuid())
+  releaseId   String
+  release     MusicRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  rating      Int          // 1-5
+  ipHash      String       // hashed IP for one-vote-per-release
+  createdAt   DateTime     @default(now())
+
+  @@unique([releaseId, ipHash])
+  @@index([releaseId])
 }

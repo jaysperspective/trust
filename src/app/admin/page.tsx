@@ -10,6 +10,7 @@ import { NewsDigestButton } from './news-digest-button'
 import { AutopostToggle } from './autopost-toggle'
 import { LogViewer } from './log-viewer'
 import { VideoFetchButton } from './videos/video-fetch-button'
+import { MusicFetchButton } from './music-fetch-button'
 
 async function getStats() {
   try {
@@ -26,6 +27,7 @@ async function getStats() {
       videoCount,
       channelCount,
       pendingSubmissions,
+      musicReleaseCount,
     ] = await Promise.all([
       prisma.post.count(),
       prisma.comment.count(),
@@ -49,6 +51,7 @@ async function getStats() {
       prisma.youTubeVideo.count(),
       prisma.youTubeChannel.count({ where: { enabled: true } }),
       prisma.roundtableSubmission.count({ where: { status: 'pending' } }),
+      prisma.musicRelease.count(),
     ])
 
     return {
@@ -64,6 +67,7 @@ async function getStats() {
       videoCount,
       channelCount,
       pendingSubmissions,
+      musicReleaseCount,
     }
   } catch {
     return {
@@ -79,6 +83,7 @@ async function getStats() {
       videoCount: 0,
       channelCount: 0,
       pendingSubmissions: 0,
+      musicReleaseCount: 0,
     }
   }
 }
@@ -104,6 +109,7 @@ export default async function AdminDashboard() {
             <Link href="/admin/roundtables/new">
               <Button>New Roundtable</Button>
             </Link>
+            <MusicFetchButton />
             <VideoFetchButton />
             <NewsDigestButton />
             <AutopostButton />
@@ -120,6 +126,7 @@ export default async function AdminDashboard() {
             { label: 'Running', value: stats.runningTasks, color: 'var(--status-running)' },
             { label: '+downloads', value: stats.downloadCount, color: 'var(--accent-secondary)' },
             { label: 'Videos', value: stats.videoCount, color: 'var(--accent-primary)' },
+            { label: 'Releases', value: stats.musicReleaseCount, color: 'var(--accent-secondary)' },
             { label: 'Pending Subs', value: stats.pendingSubmissions, color: 'var(--status-warning)' },
           ].map(({ label, value, color }) => (
             <Card key={label}>
@@ -256,6 +263,9 @@ export default async function AdminDashboard() {
               <Link href="/admin/submissions">
                 <Button variant="secondary" size="sm">Submissions</Button>
               </Link>
+              <Link href="/admin/music">
+                <Button variant="secondary" size="sm">Music Releases</Button>
+              </Link>
               <Link href="/agents">
                 <Button variant="ghost" size="sm">View Agents</Button>
               </Link>
@@ -269,10 +279,10 @@ export default async function AdminDashboard() {
             <h2 className="text-meta uppercase tracking-wider mb-4">RSS Feed</h2>
             <div className="flex items-center gap-3">
               <code className="flex-1 px-3 py-2 text-sm bg-[var(--bg-base)] border border-[var(--border-default)] rounded-lg text-[var(--text-primary)] font-mono select-all">
-                https://urapages.com/feed.xml
+                https://plusntrust.org/feed.xml
               </code>
               <a
-                href="https://urapages.com/feed.xml"
+                href="https://plusntrust.org/feed.xml"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-[var(--accent-primary)] hover:underline whitespace-nowrap"

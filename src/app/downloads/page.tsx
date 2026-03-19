@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Apps | URA Pages',
+  title: 'Apps | plustrust',
   description: 'Free, local-first software for your Mac. No accounts, no subscriptions.',
 }
 
@@ -38,7 +38,7 @@ export default function DownloadsPage() {
       {/* Header */}
       <section className="container-page pt-16 pb-10">
         <div className="max-w-3xl mx-auto">
-          <p className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-widest mb-3">URA Pages</p>
+          <p className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-widest mb-3">plustrust</p>
           <h1 className="text-3xl font-mono font-bold text-[var(--text-primary)]">Apps</h1>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">
             Free, local-first software. No accounts, no subscriptions, no data leaving your machine.

@@ -51,7 +51,7 @@ FEED_NEWSROOM_URL=https://your-site.com/newsroom/feed.xml
 FEED_LATEST_URL=https://your-site.com/latest/feed.xml
 
 # Base URL for localhost replacement
-BASE_PUBLIC_URL=https://urapages.com
+BASE_PUBLIC_URL=https://plusntrust.org
 
 # Thread mode (off, summary, full)
 THREAD_MODE=off
@@ -132,7 +132,7 @@ Tweet N: Read: https://example.com/article-url
 | `X_ACCESS_SECRET` | Yes | - | X access token secret |
 | `FEED_NEWSROOM_URL` | Yes | - | Newsroom RSS feed URL |
 | `FEED_LATEST_URL` | Yes | - | Latest RSS feed URL |
-| `BASE_PUBLIC_URL` | No | https://urapages.com | Replaces localhost URLs in feeds |
+| `BASE_PUBLIC_URL` | No | https://plusntrust.org | Replaces localhost URLs in feeds |
 | `POLL_INTERVAL_SEC` | No | 300 | Seconds between feed polls |
 | `MAX_NEW_ITEMS_PER_FEED_PER_POLL` | No | 3 | Max new items to queue per feed per cycle |
 | `MIN_DELAY_BETWEEN_POSTS_SEC` | No | 90 | Minimum seconds between items/threads |
@@ -154,8 +154,8 @@ If your RSS feed contains localhost URLs (common during development), they will 
 
 | Feed URL | Becomes |
 |----------|---------|
-| `http://localhost:3000/p/abc123` | `https://urapages.com/p/abc123` |
-| `https://localhost:3000/newsroom/story` | `https://urapages.com/newsroom/story` |
+| `http://localhost:3000/p/abc123` | `https://plusntrust.org/p/abc123` |
+| `https://localhost:3000/newsroom/story` | `https://plusntrust.org/newsroom/story` |
 
 This applies to:
 - Item links

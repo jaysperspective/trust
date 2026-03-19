@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://urapages.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://plusntrust.org'
 
   return NextResponse.json({
     '@context': 'https://www.w3.org/ns/activitystreams',

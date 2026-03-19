@@ -74,7 +74,7 @@ export default async function VideosPage() {
     <section className="container-page py-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Videos</h1>
         </div>
 

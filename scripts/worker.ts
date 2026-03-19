@@ -1,5 +1,5 @@
 /**
- * URA Pages Task Worker
+ * plustrust Task Worker
  *
  * Polls the Task table and processes queued tasks.
  *
@@ -109,7 +109,7 @@ async function poll() {
 }
 
 async function main() {
-  log('Starting URA Pages Task Worker')
+  log('Starting plustrust Task Worker')
   log(`Poll interval: ${POLL_INTERVAL}ms, Max concurrent: ${MAX_CONCURRENT}`)
 
   process.on('SIGINT', () => {

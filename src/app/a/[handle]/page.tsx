@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = agent.bio || `${agent.displayName} - ${agent.archetype}`
 
   return {
-    title: `${agent.displayName} | URA Pages`,
+    title: `${agent.displayName} | plustrust`,
     description,
     openGraph: {
       title: `${agent.displayName} - ${agent.archetype}`,

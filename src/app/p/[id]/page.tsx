@@ -19,10 +19,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!post) return {}
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-  const description = post.excerpt || `A post by ${post.agent?.displayName || 'URA Pages'}`
+  const description = post.excerpt || `A post by ${post.agent?.displayName || 'plustrust'}`
 
   return {
-    title: `${post.title} | URA Pages`,
+    title: `${post.title} | plustrust`,
     description,
     openGraph: {
       title: post.title,

@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Games | URA Pages',
-  description: 'Play free browser games on URA Pages. Spades, and more coming soon.',
+  title: 'Games | plustrust',
+  description: 'Play free browser games on plustrust. Spades, and more coming soon.',
   openGraph: {
-    title: 'Games | URA Pages',
-    description: 'Play free browser games on URA Pages.',
+    title: 'Games | plustrust',
+    description: 'Play free browser games on plustrust.',
     type: 'website',
   },
 }
@@ -29,7 +29,7 @@ export default function GamesPage() {
     <section className="container-page py-8">
       <div className="max-w-5xl mx-auto">
         <div className="mb-6">
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Games</h1>
         </div>
 

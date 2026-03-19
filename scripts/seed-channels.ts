@@ -2,32 +2,27 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-const channels = [
-  { handle: 'GoodPoliticGuy', channelId: 'UCIRXSi2NhGlX7GlC4H4Lm_A', name: 'Good Politic Guy' },
-  { handle: 'NativeLandPod', channelId: 'UCPwDm9ID1xdHlHnkYDizCCA', name: 'Native Land Pod' },
-  { handle: 'stephenasmithspeaks', channelId: 'UC2OREBiIbDChxvmDeg30Bsg', name: 'Stephen A. Smith' },
-  { handle: 'aljazeeraenglish', channelId: 'UCNye-wNBqNL5ZzHSJj3l8Bg', name: 'Al Jazeera English' },
-  { handle: 'zeteo', channelId: 'UCVG72F2Q5yCmLQfctNK6M2A', name: 'Zeteo' },
-  { handle: 'ProfJiangMedia', channelId: 'UC7IbHQjb06TX1JIQomGXC3A', name: 'Prof Jiang Media' },
-  { handle: 'BadFaithPodcast', channelId: 'UCLNw2JNuTUWFdilpzOXLa5A', name: 'Bad Faith Podcast' },
-  { handle: 'Iancarrollshow', channelId: 'UCCgpGpylCfrJIV-RwA_L7tg', name: 'Ian Carroll Show' },
-  { handle: 'SabineHossenfelder', channelId: 'UC1yNl2E66ZzKApQdRuTQ4tw', name: 'Sabine Hossenfelder' },
-  { handle: 'theinneroperator', channelId: 'UCAFqzhDwJd12pBDgdk-2GqA', name: 'The Inner Operator' },
-  { handle: 'WorldAstrologyReport', channelId: 'UC0aTKbKUCDvl5Zj3zmCOHsA', name: 'World Astrology Report' },
-  { handle: 'AlfredStreetBaptistChurch', channelId: 'UCKFkEcTQsLP7j6DFo-O4xrg', name: 'Alfred Street Baptist Church' },
-  { handle: 'TheDailyShow', channelId: 'UCwWhs_6x42TyRM4Wstoq8HA', name: 'The Daily Show' },
-  { handle: 'SpaceWeatherNewsS0s', channelId: 'UCTiL1q9YbrVam5nP2xzFTWQ', name: 'Space Weather News' },
-  { handle: 'TYTInvestigatesReports', channelId: 'UCwNJt9PYyN1uyw2XhNIQMMA', name: 'TYT Investigates' },
-  { handle: 'TheJoyReidShow', channelId: 'UCvKGiwSwqd92gUoxJI3W_fw', name: 'The Joy Reid Show' },
-  { handle: 'marclamonthillnetwork', channelId: 'UCvP5iwPBzl0Wn0-GBAzGryg', name: 'Marc Lamont Hill' },
-  { handle: 'heathercoxrichardson', channelId: 'UCnbKOlm6H9njgmN-Yil90Rg', name: 'Heather Cox Richardson' },
-  { handle: 'trevornoah', channelId: 'UC8bTQzxgvKkXDAaWkeuUlkg', name: 'Trevor Noah' },
-  { handle: 'michelleobama', channelId: 'UC64L9OK6WkM0STVxysAWBuA', name: 'Michelle Obama' },
-  { handle: 'breakingpoints', channelId: 'UCDRIjKy6eZOvKtOELtTdeUA', name: 'Breaking Points' },
-  { handle: 'MoonOmens', channelId: 'UCEauk7bv9ULXE8oveqMXHdA', name: 'Moon Omens' },
-  { handle: 'lo-fijungle', channelId: 'UCbnO7aNm91r5RgRYLIhG9Cg', name: 'Lo-Fi Jungle' },
-  { handle: 'CSPAN', channelId: 'UCb--64Gl51jIEVE-GLDAVTg', name: 'C-SPAN' },
-  { handle: 'GritsAndEggsPodcast', channelId: 'UCI0e3NKL_ZnTGNlGFuiwRTA', name: 'Grits And Eggs Podcast' },
+// YouTube channels — add new sources here as { handle, channelId, name } entries
+const channels: { handle: string; channelId: string; name: string }[] = [
+  { handle: 'plusntrust', channelId: 'UCPx8Jwbky3uQXqLmBe74r2A', name: 'plustrust' },
+  { handle: 'COLORSxSTUDIOS', channelId: 'UC2Qw1dzXDBAZPwS7zm37g8g', name: 'COLORS' },
+  { handle: 'nprmusic', channelId: 'UC4eYXhJI4-7wSWc8UNRwD4A', name: 'NPR Music' },
+  { handle: 'NOOCHIESFRONTPORCH', channelId: 'UCVbA1MgqXiRTi1zEK-5q4_w', name: 'Noochie' },
+  { handle: 'hyperbolicclub', channelId: 'UCd6CY32LpsfcbMwUJSJXZQw', name: 'Hyperbolic Club' },
+  { handle: 'TheWalnutLounge', channelId: 'UCtAUckFUnkwRPrPCUsmMQxA', name: 'The Walnut Lounge' },
+  { handle: 'jayzslifeandtimes', channelId: 'UCN-sc1xJr-QQNj_uNIM9wTA', name: 'JAY-Z' },
+  { handle: 'joebuddentv', channelId: 'UC23_r1bpkTWaBltbXsQxysA', name: 'Joe Budden TV' },
+  { handle: 'Complex', channelId: 'UCE_--R1P5-kfBzHTca0dsnw', name: 'Complex' },
+  { handle: 'TheEbroLauraRosenbergShow', channelId: 'UCRTR2HfPiuZ5jMUf9iMpYgQ', name: 'The Ebro Laura Rosenberg Show' },
+  { handle: 'BreakfastClubPower1051FM', channelId: 'UChi08h4577eFsNXGd3sxYhw', name: 'Breakfast Club Power 105.1 FM' },
+  { handle: 'Big.Boy.', channelId: 'UCvIFYR01Rp0VX5vegE_uHKQ', name: 'BigBoyTV' },
+  { handle: 'ziwe', channelId: 'UCY3L5on78KPyltbhEyiLDmA', name: 'Ziwe' },
+  { handle: 'revolt', channelId: 'UCqISR0F9-nCth-V2r4Qy75Q', name: 'REVOLT' },
+  { handle: 'kendricklamar', channelId: 'UC3lBXcrKFnFAFkfVk5WuKcQ', name: 'Kendrick Lamar' },
+  { handle: 'jcole', channelId: 'UCnc6db-y3IU7CkT_yeVXdVg', name: 'J. Cole' },
+  { handle: 'DrakeOfficial', channelId: 'UCByOQJjav0CUDwxCk-jVNRQ', name: 'Drake' },
+  { handle: 'grounded.shaispace', channelId: 'UCU-3ec2K0hdD4r8-KzNSTAg', name: 'Shai Space' },
+  { handle: 'threetwenty_ncs', channelId: 'UCvZZYTd4kQCs0sCOi_Abaug', name: 'threetwenty_ncs' },
 ]
 
 async function main() {

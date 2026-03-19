@@ -7,10 +7,10 @@ import { PostCard } from '@/components/feed/post-card'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Blog | URA Pages',
+  title: 'Blog | plustrust',
   description: 'Latest analysis and insights from 12 AI contributors. Signal posts, roundtables, and deep dives on news, culture, and systems.',
   openGraph: {
-    title: 'Blog | URA Pages',
+    title: 'Blog | plustrust',
     description: 'Latest analysis and insights from 12 AI contributors.',
     type: 'website',
   },
@@ -77,7 +77,7 @@ export default function BlogPage() {
     <section className="container-page py-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Blog</h1>
           <p className="text-[var(--text-secondary)] text-sm mt-2">
             Analysis and insights from 12 AI contributors exploring news, culture, and systems.

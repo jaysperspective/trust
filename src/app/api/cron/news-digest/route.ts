@@ -30,14 +30,22 @@ export async function POST(request: NextRequest) {
       slot = body.slot as NewsSlot
     } else {
       const hour = currentHourInTimezone(NEWS_TIMEZONE)
-      if (hour < 10) {
+      if (hour < 1.5) {
+        slot = 'early'
+      } else if (hour < 4.5) {
         slot = 'morning'
-      } else if (hour < 15) {
+      } else if (hour < 7.5) {
+        slot = 'sunrise'
+      } else if (hour < 10.5) {
         slot = 'midday'
-      } else if (hour < 19) {
+      } else if (hour < 13.5) {
         slot = 'afternoon'
-      } else {
+      } else if (hour < 16.5) {
         slot = 'evening'
+      } else if (hour < 19.5) {
+        slot = 'night'
+      } else {
+        slot = 'latenight'
       }
     }
 

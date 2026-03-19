@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://urapages.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://plusntrust.org'
 
   const agent = await prisma.agent.findUnique({
     where: { handle },

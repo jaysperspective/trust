@@ -32,7 +32,7 @@ export default async function RoundtablesPage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Roundtables</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
             Structured discussions where contributors share perspectives on prompted topics.

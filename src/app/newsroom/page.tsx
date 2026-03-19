@@ -9,10 +9,14 @@ import NewsroomAutoRefresh from '@/components/newsroom/newsroom-auto-refresh'
 export const dynamic = 'force-dynamic'
 
 const SLOT_LABELS: Record<string, string> = {
-  morning: 'Morning Edition / 7 AM',
-  midday: 'Midday Edition / 1 PM',
-  afternoon: 'Afternoon Edition / 5 PM',
-  evening: 'Evening Edition / 10 PM',
+  early: 'Early Edition / 12 AM',
+  morning: 'Morning Edition / 3 AM',
+  sunrise: 'Sunrise Edition / 6 AM',
+  midday: 'Midday Edition / 9 AM',
+  afternoon: 'Afternoon Edition / 12 PM',
+  evening: 'Evening Edition / 3 PM',
+  night: 'Night Edition / 6 PM',
+  latenight: 'Late Night Edition / 9 PM',
 }
 
 const NEWS_TIMEZONE = process.env.NEWS_TIMEZONE || 'America/New_York'
@@ -171,7 +175,7 @@ export default async function NewsroomPage() {
       <div className="max-w-2xl mx-auto">
         <NewsroomAutoRefresh />
         <div className="mb-6">
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Newsroom</h1>
         </div>
 

@@ -21,24 +21,24 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#2A2726',
+  themeColor: '#313030',
 };
 
 export const metadata: Metadata = {
-  title: "URA Pages | Collective Intelligence",
-  description: "An AI-only social network featuring 12 astrologically-typed agents exploring ideas through the Aquarian lens.",
-  keywords: ["AI", "collective intelligence", "astrology", "social network", "Aquarius"],
-  authors: [{ name: "URA Pages" }],
+  title: "plustrust | source for music news",
+  description: "Your source for hip hop, R&B, and soul music news.",
+  keywords: ["music news", "hip hop", "R&B", "soul", "rap", "music"],
+  authors: [{ name: "plustrust" }],
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'URA Pages',
+    title: 'plustrust',
     startupImage: '/icons/appstoreicon.png',
   },
   openGraph: {
-    title: "URA Pages",
-    description: "AI-only social network with 12 astrologically-typed agents",
+    title: "plustrust",
+    description: "Your source for hip hop, R&B, and soul music news",
     type: "website",
   },
   alternates: {
@@ -62,28 +62,28 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'Organization',
-      '@id': 'https://urapages.com/#organization',
-      name: 'URA Pages',
-      url: 'https://urapages.com',
+      '@id': 'https://plusntrust.org/#organization',
+      name: 'plustrust',
+      url: 'https://plusntrust.org',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://urapages.com/icons/icon-512.png',
+        url: 'https://plusntrust.org/icons/icon-512.png',
       },
       description:
-        'An AI-only social network featuring 12 astrologically-typed agents exploring ideas through collective intelligence.',
+        'Your source for hip hop, R&B, and soul music news.',
       sameAs: [],
     },
     {
       '@type': 'WebSite',
-      '@id': 'https://urapages.com/#website',
-      url: 'https://urapages.com',
-      name: 'URA Pages',
-      publisher: { '@id': 'https://urapages.com/#organization' },
+      '@id': 'https://plusntrust.org/#website',
+      url: 'https://plusntrust.org',
+      name: 'plustrust',
+      publisher: { '@id': 'https://plusntrust.org/#organization' },
       potentialAction: {
         '@type': 'SearchAction',
         target: {
           '@type': 'EntryPoint',
-          urlTemplate: 'https://urapages.com/search?q={search_term_string}',
+          urlTemplate: 'https://plusntrust.org/search?q={search_term_string}',
         },
         'query-input': 'required name=search_term_string',
       },
@@ -97,10 +97,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
         <script
-          dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})()` }}
+          dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t||'dark')}catch(e){document.documentElement.setAttribute('data-theme','dark')}})()` }}
         />
         <script
           type="application/ld+json"

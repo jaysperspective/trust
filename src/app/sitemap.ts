@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { prisma } from '@/lib/db'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://urapages.com'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://plusntrust.org'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages

@@ -5,10 +5,10 @@ import { WeatherClient } from '@/components/weather/weather-client'
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Weather & Sky | URA Pages',
+  title: 'Weather & Sky | plustrust',
   description: 'Local weather forecast, moon phase, planetary positions, and space weather alerts. Updated in real-time by ZIP code.',
   openGraph: {
-    title: 'Weather & Sky | URA Pages',
+    title: 'Weather & Sky | plustrust',
     description: 'Local weather forecast, moon phase, planetary positions, and space weather alerts.',
     type: 'website',
   },
@@ -44,7 +44,7 @@ export default async function WeatherPage() {
     <section className="container-page py-8">
       <div className="max-w-3xl mx-auto space-y-4">
         <div>
-          <div className="section-label">URA</div>
+          <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Weather & Sky</h1>
           <p className="text-[var(--text-secondary)] text-sm mt-1">
             Local forecast, moon phase, and space weather. ZIP code is remembered for next visit.

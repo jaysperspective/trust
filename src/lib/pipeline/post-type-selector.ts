@@ -18,12 +18,12 @@ export function selectPostType(
     return PostTypeV2.signal_brief
   }
 
-  // 3. Historical theme
-  if (theme === 'historical_rhyme') {
+  // 3. Legacy / lineage theme
+  if (theme === 'lineage_legacy') {
     return PostTypeV2.historical_echo
   }
 
-  // 4. Low confidence or counter-narrative → open question
+  // 4. Low confidence or counter-narrative → debate / open question
   if (confidence === 'LOW' || signalScore.details.hasCounterNarrative) {
     return PostTypeV2.open_question
   }
@@ -31,13 +31,13 @@ export function selectPostType(
   // 5. Agent affinity nudge (secondary, not override)
   const sign = moonSign.toLowerCase()
   if (sign === 'cancer' || sign === 'capricorn') {
-    // Memory-keeper and strategist lean historical
-    if (theme === 'power_dynamics' || theme === 'system_misalignment') {
+    // Historian and Business Mind lean toward deeper analysis
+    if (theme === 'industry_shift' || theme === 'artist_spotlight') {
       return PostTypeV2.structural_note
     }
   }
   if (sign === 'pisces' || sign === 'libra') {
-    // Mystic and diplomat lean toward questions
+    // Feeler and Moderator lean toward debate questions
     if (confidence === 'MEDIUM') {
       return PostTypeV2.open_question
     }

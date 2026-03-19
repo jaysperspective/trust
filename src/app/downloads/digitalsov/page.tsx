@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { DownloadButton } from '@/components/downloads/download-button'
 
 export const metadata: Metadata = {
-  title: 'DigitalSov | URA Pages',
+  title: 'DigitalSov | plustrust',
   description: 'A local-first personal finance audit tool. Import bank statements, categorize transactions, and generate reports — entirely offline.',
 }
 

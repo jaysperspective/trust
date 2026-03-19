@@ -20,7 +20,7 @@ const configSchema = z.object({
   feedLatestUrl: z.string().url('FEED_LATEST_URL must be a valid URL'),
 
   // Base public URL for localhost replacement
-  basePublicUrl: z.string().url().default('https://urapages.com'),
+  basePublicUrl: z.string().url().default('https://plusntrust.org'),
 
   // Polling & Rate limits
   pollIntervalSec: z.coerce.number().int().min(60).default(300),

@@ -11,29 +11,30 @@ interface AgentInfo {
 }
 
 const POST_TYPE_CONSTRAINTS: Record<PostTypeV2, string> = {
-  [PostTypeV2.signal_brief]: `POST TYPE: SIGNAL BRIEF (120-180 words)
-Lead with the signal. What changed? When? No editorializing in the first sentence.
-Be crisp and informative. Every word must earn its place.`,
+  [PostTypeV2.signal_brief]: `POST TYPE: NEWS DROP (120-180 words)
+Lead with the news. What happened? Who's involved? When?
+Be crisp and informative — this is a breaking update, not an op-ed.
+Every word must earn its place.`,
 
-  [PostTypeV2.structural_note]: `POST TYPE: STRUCTURAL NOTE (200-350 words)
-No moralizing. Map the structure: who, what mechanism, what incentive.
-Explain how the system works, not how you feel about it.
-Readers should leave understanding the machinery, not the author's emotions.`,
+  [PostTypeV2.structural_note]: `POST TYPE: ANALYSIS (200-350 words)
+Go deeper than the headline. Map the dynamics: the business logic, the creative decision, the cultural context.
+Explain why this matters, not just what happened.
+Readers should leave understanding the bigger picture.`,
 
-  [PostTypeV2.historical_echo]: `POST TYPE: HISTORICAL ECHO (200-350 words)
-You MUST cite a specific historical precedent.
-Show the past-to-present parallel explicitly: name dates, actors, outcomes.
-Let the comparison illuminate, not preach.`,
+  [PostTypeV2.historical_echo]: `POST TYPE: LEGACY PIECE (200-350 words)
+You MUST cite a specific moment in music history.
+Draw the line from past to present explicitly: name the artists, the albums, the eras.
+Let the comparison illuminate what's happening now.`,
 
-  [PostTypeV2.open_question]: `POST TYPE: OPEN QUESTION (150-250 words)
-End with a question that creates genuine discomfort. No rhetorical questions.
-Present the tension without resolving it.
-The reader should leave unsettled, not reassured.`,
+  [PostTypeV2.open_question]: `POST TYPE: THE DEBATE (150-250 words)
+End with a question that sparks real discussion. No rhetorical softballs.
+Present a genuine tension in the culture without resolving it.
+The reader should want to argue about this.`,
 
-  [PostTypeV2.correction_update]: `POST TYPE: CORRECTION / UPDATE (150-250 words)
-Acknowledge what was previously claimed or assumed.
-State clearly what has changed or what new evidence shows.
-Model intellectual honesty: explain why the revision is necessary.`,
+  [PostTypeV2.correction_update]: `POST TYPE: UPDATE (150-250 words)
+Acknowledge what was previously reported or assumed.
+State clearly what has changed — new info, a retraction, or a follow-up.
+Be straight about why the update matters.`,
 }
 
 export function buildPublicPostPrompt(
@@ -59,7 +60,7 @@ export function buildPublicPostPrompt(
     .map(e => `- ${e.fact} (${e.strength})`)
     .join('\n')
 
-  const instruction = `Write a public post for the URA Pages feed.
+  const instruction = `Write a music journalism piece for the +trust feed.
 
 ${POST_TYPE_CONSTRAINTS[postTypeV2]}
 
@@ -73,20 +74,21 @@ ${counterSummary}
 - Falsifiability: ${reasoningPacket.falsifiabilityCriteria}
 
 OUTPUT FORMAT — follow this exactly:
-Headline: [compelling headline, max 10 words, magazine-quality]
+Headline: [compelling headline, max 10 words — think Complex, Pitchfork, XXL cover lines]
 
 [body text — paragraphs separated by blank lines]
 
 Assumption: [one key assumption]
 
-Question: [one probing question]
+Question: [one question for the readers]
 
 Sources:
 - [source title](url)
 
 CONSTRAINTS:
 - Stay in character as @${agent.agentHandle} (${agent.archetype})
-- Apply your Moon in ${agent.moonSign} emotional framing
+- Write like a music journalist, not a general news reporter
+- Reference specific songs, albums, artists, producers, and labels by name
 - Do not use excessive hedging
 - No hashtags, no emoji
 - Cite at least 2 sources`

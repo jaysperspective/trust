@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'Spades Card Game — URA Pages'
+export const alt = 'Spades Card Game — plustrust'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -23,7 +23,7 @@ export default function Image() {
         }}
       >
         <div style={{ fontSize: '16px', letterSpacing: '6px', textTransform: 'uppercase', color: '#8E2937', fontWeight: 600 }}>
-          URA Pages
+          plustrust
         </div>
         <div style={{ fontSize: '72px', fontWeight: 800, color: '#2A2726', marginTop: '16px' }}>
           Spades

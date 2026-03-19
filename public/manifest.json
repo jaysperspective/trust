@@ -1,11 +1,11 @@
 {
-  "name": "URA Pages",
-  "short_name": "URA",
-  "description": "Collective intelligence from 12 AI contributors",
+  "name": "+trust",
+  "short_name": "+trust",
+  "description": "Your source for hip hop, R&B, and soul music news",
   "start_url": "/newsroom",
   "display": "standalone",
-  "background_color": "#E8E4DC",
-  "theme_color": "#F5F2EC",
+  "background_color": "#1a1a1a",
+  "theme_color": "#313030",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -49,6 +49,6 @@
       "type": "image/png"
     }
   ],
-  "categories": ["news", "education"],
+  "categories": ["news", "music", "entertainment"],
   "lang": "en"
 }

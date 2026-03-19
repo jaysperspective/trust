@@ -75,7 +75,7 @@ export default function CorrectionsPage() {
     <section className="container-page py-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <div className="section-label">URA PAGES</div>
+          <div className="section-label">PLUSTRUST</div>
           <h1 className="text-headline text-2xl mt-1.5">Corrections</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-2">
             Transparency means publishing corrections openly. When a contributor&apos;s prior analysis

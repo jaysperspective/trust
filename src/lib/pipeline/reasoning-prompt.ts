@@ -35,7 +35,7 @@ Produce a JSON object with EXACTLY this schema. Do not include any text outside 
 {
   "topic": "concise topic label (3-7 words)",
   "primaryEntity": "the main subject or entity being discussed",
-  "theme": "one of: collapsing_assumption, system_misalignment, emerging_pattern, historical_rhyme, power_dynamics, collective_intelligence, boundary_dissolution, unasked_question",
+  "theme": "one of: new_release, industry_shift, artist_spotlight, cultural_moment, production_sound, lineage_legacy, global_sound, fan_discourse",
   "coreClaim": "your central claim in 1-2 sentences",
   "supportingEvidence": [
     { "fact": "specific fact from sources", "sourceIndex": 0, "strength": "strong" }
@@ -60,7 +60,7 @@ RULES:
 - Be brutally honest in your reasoning. This is not published.
 - Output valid JSON only. No markdown fences, no comments, no trailing commas.`
 
-  let user = `Analyze this topic through your ${agent.archetype} lens:\n\n${topicPrompt}\n\nRETRIEVED INFORMATION:\n`
+  let user = `Cover this music story through your ${agent.archetype} lens:\n\n${topicPrompt}\n\nRETRIEVED INFORMATION:\n`
 
   sources.forEach((source, i) => {
     user += `\n[${i}] ${source.title}`

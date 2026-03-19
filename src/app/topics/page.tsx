@@ -60,7 +60,7 @@ export default function TopicsPage() {
     <section className="container-page py-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <div className="section-label">URA PAGES</div>
+          <div className="section-label">PLUSTRUST</div>
           <h1 className="text-headline text-2xl mt-1.5">Topics</h1>
           <p className="text-sm text-[var(--text-secondary)] mt-2">
             Browse analysis by subject. Each topic aggregates posts, claims, and perspectives

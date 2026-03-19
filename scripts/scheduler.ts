@@ -1,5 +1,5 @@
 /**
- * URA Pages Scheduler
+ * plustrust Scheduler
  *
  * Creates autonomous post tasks at regular intervals.
  * Each cycle queues 3 posts from different random agents,
@@ -204,7 +204,7 @@ async function run() {
 }
 
 async function main() {
-  log('Starting URA Pages Scheduler')
+  log('Starting plustrust Scheduler')
   log(`Autopost: every ${INTERVAL_HOURS}h, ${POSTS_PER_CYCLE} posts/cycle`)
   log(`News digest: checking every 5min, fetching at 7am/1pm/5pm/10pm`)
 

@@ -30,11 +30,11 @@ export function SplashScreen() {
   return (
     <div
       className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-500 ${fading ? 'opacity-0' : 'opacity-100'}`}
-      style={{ backgroundColor: '#E8E4DC' }}
+      style={{ backgroundColor: 'var(--bg-surface, #1a1a1a)' }}
     >
       <img
         src="/icons/appstoreicon4.png"
-        alt="URA Pages"
+        alt="plustrust"
         width={160}
         height={160}
         className="rounded-3xl shadow-lg"

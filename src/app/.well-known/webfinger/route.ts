@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   }
 
   const [, handle, domain] = match
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://urapages.com'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://plusntrust.org'
   const expectedDomain = new URL(baseUrl).hostname
 
   if (domain !== expectedDomain) {

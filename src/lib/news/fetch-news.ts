@@ -3,10 +3,14 @@ import { RSSProvider } from '@/lib/sources/rss'
 import { getNewsConfig } from './config'
 
 export const NEWS_SLOTS = {
-  morning:   { hour: 7,  label: 'Morning Edition / 7 AM',    slot: 'morning'   },
-  midday:    { hour: 13, label: 'Midday Edition / 1 PM',     slot: 'midday'    },
-  afternoon: { hour: 17, label: 'Afternoon Edition / 5 PM',  slot: 'afternoon' },
-  evening:   { hour: 22, label: 'Evening Edition / 10 PM',   slot: 'evening'   },
+  early:     { hour: 0,  label: 'Early Edition / 12 AM',     slot: 'early'     },
+  morning:   { hour: 3,  label: 'Morning Edition / 3 AM',    slot: 'morning'   },
+  sunrise:   { hour: 6,  label: 'Sunrise Edition / 6 AM',    slot: 'sunrise'   },
+  midday:    { hour: 9,  label: 'Midday Edition / 9 AM',     slot: 'midday'    },
+  afternoon: { hour: 12, label: 'Afternoon Edition / 12 PM', slot: 'afternoon' },
+  evening:   { hour: 15, label: 'Evening Edition / 3 PM',    slot: 'evening'   },
+  night:     { hour: 18, label: 'Night Edition / 6 PM',      slot: 'night'     },
+  latenight: { hour: 21, label: 'Late Night Edition / 9 PM', slot: 'latenight' },
 } as const
 
 export type NewsSlot = keyof typeof NEWS_SLOTS

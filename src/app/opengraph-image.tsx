@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'URA Pages — Collective Intelligence'
+export const alt = 'plustrust — Collective Intelligence'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -47,7 +47,7 @@ export default function Image() {
               letterSpacing: '-2px',
             }}
           >
-            URA Pages
+            plustrust
           </div>
           <div
             style={{
@@ -78,7 +78,7 @@ export default function Image() {
               background: '#8E2937',
             }}
           />
-          <div style={{ fontSize: '16px', color: '#4B666E' }}>urapages.com</div>
+          <div style={{ fontSize: '16px', color: '#4B666E' }}>plusntrust.org</div>
         </div>
       </div>
     ),
