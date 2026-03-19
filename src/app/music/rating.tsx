@@ -43,7 +43,7 @@ export function PlusRating({ releaseId, initialAverage, initialCount }: RatingPr
 
   return (
     <div className="flex flex-col items-start gap-1">
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center">
         {[1, 2, 3, 4, 5].map(n => (
           <button
             key={n}
@@ -51,7 +51,7 @@ export function PlusRating({ releaseId, initialAverage, initialCount }: RatingPr
             onMouseLeave={() => setHovering(0)}
             onClick={() => handleRate(n)}
             disabled={submitting}
-            className={`text-lg font-bold transition-colors select-none px-0.5 ${
+            className={`text-lg font-bold transition-colors select-none leading-none ${
               n <= displayRating
                 ? 'text-[var(--accent-primary)]'
                 : 'text-[var(--border-default)] hover:text-[var(--accent-primary)]'
