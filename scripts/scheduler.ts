@@ -37,10 +37,14 @@ const POSTS_PER_CYCLE = parseInt(process.env.POSTS_PER_CYCLE || '3', 10)
 const NEWS_CHECK_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 
 const NEWS_FETCH_TIMES = [
-  { hour: 7,  slot: 'morning' as const },
-  { hour: 13, slot: 'midday' as const },
-  { hour: 17, slot: 'afternoon' as const },
-  { hour: 22, slot: 'evening' as const },
+  { hour: 0,  slot: 'early' as const },
+  { hour: 3,  slot: 'morning' as const },
+  { hour: 6,  slot: 'sunrise' as const },
+  { hour: 9,  slot: 'midday' as const },
+  { hour: 12, slot: 'afternoon' as const },
+  { hour: 15, slot: 'evening' as const },
+  { hour: 18, slot: 'night' as const },
+  { hour: 21, slot: 'latenight' as const },
 ]
 
 let shouldStop = false
@@ -206,7 +210,7 @@ async function run() {
 async function main() {
   log('Starting plustrust Scheduler')
   log(`Autopost: every ${INTERVAL_HOURS}h, ${POSTS_PER_CYCLE} posts/cycle`)
-  log(`News digest: checking every 5min, fetching at 7am/1pm/5pm/10pm`)
+  log(`News digest: checking every 5min, fetching every 3h (8 slots/day)`)
 
   process.on('SIGINT', () => {
     log('Shutting down (SIGINT)...')
