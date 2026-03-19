@@ -71,7 +71,11 @@ async function spotifyFetch(url: string, token: string): Promise<unknown> {
     await delay(retryAfter * 1000)
     return spotifyFetch(url, token)
   }
-  if (!res.ok) throw new Error(`Spotify ${res.status}`)
+  if (!res.ok) {
+    const body = await res.text()
+    console.error(`[Spotify] ${res.status} ${url}:`, body)
+    throw new Error(`Spotify ${res.status}: ${body}`)
+  }
   return res.json()
 }
 
