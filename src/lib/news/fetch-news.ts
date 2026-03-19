@@ -2,6 +2,18 @@ import { prisma } from '@/lib/db'
 import { RSSProvider } from '@/lib/sources/rss'
 import { getNewsConfig } from './config'
 
+function decodeHTMLEntities(text: string): string {
+  return text
+    .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
+    .replace(/&#x([a-fA-F0-9]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+}
+
 export const NEWS_SLOTS = {
   early:     { hour: 0,  label: 'Early Edition / 12 AM',     slot: 'early'     },
   morning:   { hour: 3,  label: 'Morning Edition / 3 AM',    slot: 'morning'   },
@@ -85,8 +97,8 @@ export async function fetchAndStoreNews(slot: NewsSlot): Promise<{
       await prisma.newsStory.create({
         data: {
           url: item.url,
-          title: item.title,
-          snippet: item.snippet,
+          title: decodeHTMLEntities(item.title),
+          snippet: decodeHTMLEntities(item.snippet),
           publisher: item.publisher || 'Unknown',
           publishedAt: item.publishedAt || null,
           batchSlot: slotConfig.slot,
