@@ -474,18 +474,18 @@ model YouTubeVideo {
 
 model MusicRelease {
   id            String   @id @default(cuid())
-  externalId    String   @unique // Deezer album ID or other source ID
+  externalId    String   @unique // Spotify album ID or other source ID
   title         String
   artist        String
   coverUrl      String?
   releaseDate   DateTime?
   releaseType   String   @default("album") // album, single, ep
-  genre         String?  // hip_hop, rnb, soul
+  genre         String?  // hip_hop, rnb_soul, jazz
   label         String?
   trackCount    Int?
-  deezerUrl     String?
-  source        String   @default("deezer") // deezer, apple, manual
-  topArtist     Boolean  @default(false) // from top 100 artist chart
+  spotifyUrl    String?
+  source        String   @default("spotify") // spotify, manual
+  topArtist     Boolean  @default(false) // from genre search results
   featured      Boolean  @default(false) // admin-featured release
   fetchedAt     DateTime @default(now())
 

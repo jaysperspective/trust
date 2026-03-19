@@ -7,13 +7,13 @@ export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Music | plustrust',
-  description: 'New hip hop, R&B, and soul releases — rate albums and singles from + to +++++.',
+  description: 'New hip hop, R&B/soul, and jazz releases — rate albums and singles from + to +++++.',
 }
 
 const GENRE_LABELS: Record<string, string> = {
   hip_hop: 'Hip Hop',
-  rnb: 'R&B',
-  soul: 'Soul',
+  rnb_soul: 'R&B/Soul',
+  jazz: 'Jazz',
 }
 
 const RELEASE_TYPE_LABELS: Record<string, string> = {
@@ -30,7 +30,7 @@ type ReleaseWithRating = {
   releaseDate: Date | null
   releaseType: string
   genre: string | null
-  deezerUrl: string | null
+  spotifyUrl: string | null
   topArtist: boolean
   featured: boolean
   avgRating: number
@@ -75,7 +75,7 @@ async function getReleases(genre?: string): Promise<{
         releaseDate: r.releaseDate,
         releaseType: r.releaseType,
         genre: r.genre,
-        deezerUrl: r.deezerUrl,
+        spotifyUrl: r.spotifyUrl,
         topArtist: r.topArtist,
         featured: r.featured,
         avgRating,
@@ -113,7 +113,7 @@ function ReleaseCard({ release, size = 'normal' }: { release: ReleaseWithRating;
   return (
     <div className="group">
       <a
-        href={release.deezerUrl || '#'}
+        href={release.spotifyUrl || '#'}
         target="_blank"
         rel="noopener noreferrer"
         className="block aspect-square rounded-lg overflow-hidden bg-[var(--bg-elevated)] mb-2 relative"
@@ -236,7 +236,7 @@ export default async function MusicPage({ searchParams }: PageProps) {
         <div className="mb-6">
           <div className="section-label">+trust</div>
           <h1 className="text-headline text-2xl mt-1.5">Music</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">New releases in hip hop, R&B, and soul. Rate from + to +++++.</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1">New releases in hip hop, R&B/soul, and jazz. Rate from + to +++++.</p>
         </div>
 
         {/* Genre filters */}
@@ -244,8 +244,8 @@ export default async function MusicPage({ searchParams }: PageProps) {
           {[
             { value: 'all', label: 'All' },
             { value: 'hip_hop', label: 'Hip Hop' },
-            { value: 'rnb', label: 'R&B' },
-            { value: 'soul', label: 'Soul' },
+            { value: 'rnb_soul', label: 'R&B/Soul' },
+            { value: 'jazz', label: 'Jazz' },
           ].map(filter => {
             const isActive = (genre || 'all') === filter.value
             return (

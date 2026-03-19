@@ -3,52 +3,96 @@ import { prisma } from '@/lib/db'
 import { verifyCronSecret, isAdminAuthenticated } from '@/lib/auth'
 import { getExcludedArtists, isExcludedArtist } from '@/lib/excluded-artists'
 
-const DEEZER_GENRES = [
-  { id: 116, label: 'hip_hop' },
-  { id: 165, label: 'rnb' },
-  { id: 169, label: 'soul' },
+const SPOTIFY_GENRES = [
+  { query: 'hip hop', label: 'hip_hop' },
+  { query: 'r&b soul', label: 'rnb_soul' },
+  { query: 'jazz', label: 'jazz' },
 ]
 
-interface DeezerArtist {
-  id: number
+interface SpotifyToken {
+  access_token: string
+  token_type: string
+  expires_in: number
+}
+
+interface SpotifyImage {
+  url: string
+  height: number
+  width: number
+}
+
+interface SpotifyArtist {
+  id: string
   name: string
-  position?: number
 }
 
-interface DeezerAlbum {
-  id: number
-  title: string
-  link?: string
-  cover_big?: string
-  cover_xl?: string
-  record_type?: string
-  type?: string
-  release_date?: string
-  genre_id?: number
-  artist?: { name: string }
-  nb_tracks?: number
-  label?: string
-  explicit_lyrics?: boolean
+interface SpotifyAlbum {
+  id: string
+  name: string
+  album_type: string // album, single, compilation
+  release_date: string
+  release_date_precision: string
+  artists: SpotifyArtist[]
+  images: SpotifyImage[]
+  total_tracks: number
+  external_urls: { spotify: string }
 }
 
-async function deezerFetch(url: string): Promise<unknown> {
-  const res = await fetch(url, { headers: { 'User-Agent': 'plustrust/1.0' } })
-  if (!res.ok) throw new Error(`Deezer ${res.status}`)
+async function getSpotifyToken(): Promise<string> {
+  const clientId = process.env.SPOTIFY_CLIENT_ID
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET
+  if (!clientId || !clientSecret) {
+    throw new Error('SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET must be set')
+  }
+
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
+    },
+    body: 'grant_type=client_credentials',
+  })
+
+  if (!res.ok) {
+    throw new Error(`Spotify auth failed: ${res.status}`)
+  }
+
+  const data = (await res.json()) as SpotifyToken
+  return data.access_token
+}
+
+async function spotifyFetch(url: string, token: string): Promise<unknown> {
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (res.status === 429) {
+    const retryAfter = parseInt(res.headers.get('Retry-After') || '2', 10)
+    await delay(retryAfter * 1000)
+    return spotifyFetch(url, token)
+  }
+  if (!res.ok) throw new Error(`Spotify ${res.status}`)
   return res.json()
 }
 
-// Small delay to respect Deezer rate limits (50 req / 5 sec)
 function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+function getBestImage(images: SpotifyImage[]): string | null {
+  if (!images || images.length === 0) return null
+  // Prefer ~300-640px images (good quality without being huge)
+  const sorted = [...images].sort((a, b) => b.height - a.height)
+  return sorted.find(i => i.height >= 300 && i.height <= 640)?.url || sorted[0]?.url || null
+}
+
 async function storeRelease(
-  album: DeezerAlbum,
-  artistName: string,
+  album: SpotifyAlbum,
   genre: string,
   isTopArtist: boolean
 ): Promise<boolean> {
-  const externalId = `deezer_${album.id}`
+  const externalId = `spotify_${album.id}`
+  const artistName = album.artists.map(a => a.name).join(', ')
 
   const existing = await prisma.musicRelease.findUnique({
     where: { externalId },
@@ -56,7 +100,6 @@ async function storeRelease(
   })
 
   if (existing) {
-    // If already exists but now from a top artist, upgrade it
     if (isTopArtist && !existing.topArtist) {
       await prisma.musicRelease.update({
         where: { externalId },
@@ -69,16 +112,15 @@ async function storeRelease(
   await prisma.musicRelease.create({
     data: {
       externalId,
-      title: album.title,
+      title: album.name,
       artist: artistName,
-      coverUrl: album.cover_big || album.cover_xl || null,
+      coverUrl: getBestImage(album.images),
       releaseDate: album.release_date ? new Date(album.release_date) : null,
-      releaseType: album.record_type || album.type || 'album',
+      releaseType: album.album_type === 'compilation' ? 'album' : album.album_type,
       genre,
-      label: album.label || null,
-      trackCount: album.nb_tracks || null,
-      deezerUrl: album.link || `https://www.deezer.com/album/${album.id}`,
-      source: 'deezer',
+      trackCount: album.total_tracks || null,
+      spotifyUrl: album.external_urls.spotify,
+      source: 'spotify',
       topArtist: isTopArtist,
     },
   })
@@ -95,92 +137,94 @@ export async function POST(request: NextRequest) {
 
   const excludedArtists = await getExcludedArtists()
   let totalStored = 0
-  let topArtistStored = 0
-  let editorialStored = 0
+  let searchStored = 0
+  let newReleasesStored = 0
   const errors: string[] = []
 
-  // ── Phase 1: Top 100 Artists per genre → their latest releases ──
-  for (const genre of DEEZER_GENRES) {
-    try {
-      const chartData = await deezerFetch(
-        `https://api.deezer.com/chart/${genre.id}/artists?limit=100`
-      ) as { data?: DeezerArtist[] }
-
-      const artists = chartData.data || []
-      console.log(`[Music] ${genre.label}: found ${artists.length} top artists`)
-
-      for (const artist of artists) {
-        if (isExcludedArtist(artist.name, excludedArtists)) continue
-        try {
-          await delay(120) // ~8 req/sec, safely under 50/5sec limit
-          const albumData = await deezerFetch(
-            `https://api.deezer.com/artist/${artist.id}/albums?limit=5&order=RELEASE_DATE`
-          ) as { data?: DeezerAlbum[] }
-
-          const albums = albumData.data || []
-
-          // Only recent releases (last 90 days)
-          const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000
-          for (const album of albums) {
-            if (album.release_date && new Date(album.release_date).getTime() < cutoff) continue
-
-            const stored = await storeRelease(album, artist.name, genre.label, true)
-            if (stored) {
-              topArtistStored++
-              totalStored++
-            }
-          }
-        } catch (err) {
-          // Skip individual artist errors silently
-          console.error(`[Music] Artist ${artist.name} error:`, err)
-        }
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      console.error(`[Music] Top artists ${genre.label}:`, err)
-      errors.push(`top_artists_${genre.label}: ${msg}`)
-    }
+  let token: string
+  try {
+    token = await getSpotifyToken()
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 
-  // ── Phase 2: Editorial new releases (all releases feed) ──
-  for (const genre of DEEZER_GENRES) {
+  // ── Phase 1: Search for new albums by genre ──
+  const currentYear = new Date().getFullYear()
+  for (const genre of SPOTIFY_GENRES) {
     try {
-      const data = await deezerFetch(
-        `https://api.deezer.com/editorial/${genre.id}/releases?limit=50`
-      ) as { data?: DeezerAlbum[] }
+      // Search for recent albums in this genre
+      const query = encodeURIComponent(`genre:"${genre.query}" year:${currentYear}`)
+      const data = await spotifyFetch(
+        `https://api.spotify.com/v1/search?q=${query}&type=album&market=US&limit=50`,
+        token
+      ) as { albums?: { items?: SpotifyAlbum[] } }
 
-      const albums = data.data || []
+      const albums = data.albums?.items || []
+      console.log(`[Music] ${genre.label}: found ${albums.length} albums via search`)
 
+      // Only recent releases (last 90 days)
+      const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000
       for (const album of albums) {
-        const artistName = album.artist?.name || 'Unknown'
+        const artistName = album.artists.map(a => a.name).join(', ')
         if (isExcludedArtist(artistName, excludedArtists)) continue
+        if (album.release_date && new Date(album.release_date).getTime() < cutoff) continue
+
         try {
-          const stored = await storeRelease(
-            album,
-            artistName,
-            genre.label,
-            false
-          )
+          const stored = await storeRelease(album, genre.label, true)
           if (stored) {
-            editorialStored++
+            searchStored++
             totalStored++
           }
         } catch (err) {
-          console.error(`[Music] Store album ${album.title}:`, err)
+          console.error(`[Music] Store album ${album.name}:`, err)
         }
       }
+
+      await delay(100)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      console.error(`[Music] Editorial ${genre.label}:`, err)
-      errors.push(`editorial_${genre.label}: ${msg}`)
+      console.error(`[Music] Search ${genre.label}:`, err)
+      errors.push(`search_${genre.label}: ${msg}`)
     }
   }
 
+  // ── Phase 2: Browse new releases (general feed) ──
+  try {
+    const data = await spotifyFetch(
+      'https://api.spotify.com/v1/browse/new-releases?country=US&limit=50',
+      token
+    ) as { albums?: { items?: SpotifyAlbum[] } }
+
+    const albums = data.albums?.items || []
+    console.log(`[Music] New releases: found ${albums.length} albums`)
+
+    for (const album of albums) {
+      const artistName = album.artists.map(a => a.name).join(', ')
+      if (isExcludedArtist(artistName, excludedArtists)) continue
+
+      // Try to assign a genre based on our categories — default to first genre
+      try {
+        const stored = await storeRelease(album, 'hip_hop', false)
+        if (stored) {
+          newReleasesStored++
+          totalStored++
+        }
+      } catch (err) {
+        console.error(`[Music] Store new release ${album.name}:`, err)
+      }
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error(`[Music] New releases:`, err)
+    errors.push(`new_releases: ${msg}`)
+  }
+
   return NextResponse.json({
-    message: `Stored ${totalStored} new releases (${topArtistStored} from top artists, ${editorialStored} from editorial)`,
+    message: `Stored ${totalStored} new releases (${searchStored} from genre search, ${newReleasesStored} from new releases)`,
     stored: totalStored,
-    topArtistStored,
-    editorialStored,
+    searchStored,
+    newReleasesStored,
     errors: errors.length > 0 ? errors : undefined,
   })
 }
