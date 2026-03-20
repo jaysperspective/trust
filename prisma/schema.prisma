@@ -474,7 +474,7 @@ model YouTubeVideo {
 
 model MusicRelease {
   id            String   @id @default(cuid())
-  externalId    String   @unique // Spotify album ID or other source ID
+  externalId    String   @unique // Apple Music ID or other source ID
   title         String
   artist        String
   coverUrl      String?
@@ -483,8 +483,8 @@ model MusicRelease {
   genre         String?  // hip_hop, rnb_soul, jazz
   label         String?
   trackCount    Int?
-  spotifyUrl    String?
-  source        String   @default("spotify") // spotify, manual
+  appleUrl      String?
+  source        String   @default("apple") // apple, manual
   topArtist     Boolean  @default(false) // from genre search results
   featured      Boolean  @default(false) // admin-featured release
   fetchedAt     DateTime @default(now())

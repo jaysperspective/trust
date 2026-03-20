@@ -13,7 +13,7 @@ export function AddReleaseForm() {
     genre: 'hip_hop',
     releaseType: 'album',
     coverUrl: '',
-    spotifyUrl: '',
+    appleUrl: '',
     topArtist: false,
     featured: false,
   })
@@ -29,7 +29,7 @@ export function AddReleaseForm() {
         body: JSON.stringify(form),
       })
       if (res.ok) {
-        setForm({ title: '', artist: '', genre: 'hip_hop', releaseType: 'album', coverUrl: '', spotifyUrl: '', topArtist: false, featured: false })
+        setForm({ title: '', artist: '', genre: 'hip_hop', releaseType: 'album', coverUrl: '', appleUrl: '', topArtist: false, featured: false })
         setOpen(false)
         router.refresh()
       }
@@ -89,7 +89,7 @@ export function AddReleaseForm() {
         </div>
         <div>
           <label className={labelClass}>Link URL</label>
-          <input type="url" value={form.spotifyUrl} onChange={e => setForm({ ...form, spotifyUrl: e.target.value })} placeholder="https://..." className={inputClass} />
+          <input type="url" value={form.appleUrl} onChange={e => setForm({ ...form, appleUrl: e.target.value })} placeholder="https://..." className={inputClass} />
         </div>
       </div>
 

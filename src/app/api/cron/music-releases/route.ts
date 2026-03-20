@@ -3,78 +3,41 @@ import { prisma } from '@/lib/db'
 import { verifyCronSecret, isAdminAuthenticated } from '@/lib/auth'
 import { getExcludedArtists, isExcludedArtist } from '@/lib/excluded-artists'
 
-const SPOTIFY_GENRES = [
+const ITUNES_GENRES = [
   { query: 'hip hop', label: 'hip_hop' },
   { query: 'r&b soul', label: 'rnb_soul' },
   { query: 'jazz', label: 'jazz' },
 ]
 
-interface SpotifyToken {
-  access_token: string
-  token_type: string
-  expires_in: number
+interface ITunesResult {
+  collectionId: number
+  collectionName: string
+  artistName: string
+  artworkUrl100: string
+  collectionType: string // 'Album'
+  releaseDate: string
+  trackCount: number
+  collectionViewUrl: string
+  primaryGenreName: string
+  copyright?: string
 }
 
-interface SpotifyImage {
+interface RSSAlbum {
+  id: string
+  name: string
+  artistName: string
+  artworkUrl100: string
+  releaseDate: string
   url: string
-  height: number
-  width: number
+  genreNames: string[]
 }
 
-interface SpotifyArtist {
-  id: string
-  name: string
-}
-
-interface SpotifyAlbum {
-  id: string
-  name: string
-  album_type: string // album, single, compilation
-  release_date: string
-  release_date_precision: string
-  artists: SpotifyArtist[]
-  images: SpotifyImage[]
-  total_tracks: number
-  external_urls: { spotify: string }
-}
-
-async function getSpotifyToken(): Promise<string> {
-  const clientId = process.env.SPOTIFY_CLIENT_ID
-  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET
-  if (!clientId || !clientSecret) {
-    throw new Error('SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET must be set')
-  }
-
-  const res = await fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-    },
-    body: 'grant_type=client_credentials',
-  })
-
-  if (!res.ok) {
-    throw new Error(`Spotify auth failed: ${res.status}`)
-  }
-
-  const data = (await res.json()) as SpotifyToken
-  return data.access_token
-}
-
-async function spotifyFetch(url: string, token: string): Promise<unknown> {
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (res.status === 429) {
-    const retryAfter = parseInt(res.headers.get('Retry-After') || '2', 10)
-    await delay(retryAfter * 1000)
-    return spotifyFetch(url, token)
-  }
+async function itunesFetch(url: string): Promise<unknown> {
+  const res = await fetch(url, { headers: { 'User-Agent': 'plustrust/1.0' } })
   if (!res.ok) {
     const body = await res.text()
-    console.error(`[Spotify] ${res.status} ${url}:`, body)
-    throw new Error(`Spotify ${res.status}: ${body}`)
+    console.error(`[iTunes] ${res.status} ${url}:`, body)
+    throw new Error(`iTunes ${res.status}`)
   }
   return res.json()
 }
@@ -83,21 +46,31 @@ function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-function getBestImage(images: SpotifyImage[]): string | null {
-  if (!images || images.length === 0) return null
-  // Prefer ~300-640px images (good quality without being huge)
-  const sorted = [...images].sort((a, b) => b.height - a.height)
-  return sorted.find(i => i.height >= 300 && i.height <= 640)?.url || sorted[0]?.url || null
+function hiResArtwork(url100: string): string {
+  // iTunes artwork URLs end in 100x100bb.jpg — replace for larger size
+  return url100.replace('100x100bb', '600x600bb')
+}
+
+function guessGenre(primaryGenre: string, genreNames?: string[]): string {
+  const all = [primaryGenre, ...(genreNames || [])].map(g => g.toLowerCase())
+  if (all.some(g => g.includes('hip') || g.includes('rap'))) return 'hip_hop'
+  if (all.some(g => g.includes('r&b') || g.includes('soul'))) return 'rnb_soul'
+  if (all.some(g => g.includes('jazz'))) return 'jazz'
+  return 'hip_hop'
 }
 
 async function storeRelease(
-  album: SpotifyAlbum,
+  externalId: string,
+  title: string,
+  artist: string,
+  coverUrl: string | null,
+  releaseDate: string | null,
+  releaseType: string,
   genre: string,
+  trackCount: number | null,
+  appleUrl: string,
   isTopArtist: boolean
 ): Promise<boolean> {
-  const externalId = `spotify_${album.id}`
-  const artistName = album.artists.map(a => a.name).join(', ')
-
   const existing = await prisma.musicRelease.findUnique({
     where: { externalId },
     select: { id: true, topArtist: true },
@@ -116,15 +89,15 @@ async function storeRelease(
   await prisma.musicRelease.create({
     data: {
       externalId,
-      title: album.name,
-      artist: artistName,
-      coverUrl: getBestImage(album.images),
-      releaseDate: album.release_date ? new Date(album.release_date) : null,
-      releaseType: album.album_type === 'compilation' ? 'album' : album.album_type,
+      title,
+      artist,
+      coverUrl,
+      releaseDate: releaseDate ? new Date(releaseDate) : null,
+      releaseType,
       genre,
-      trackCount: album.total_tracks || null,
-      spotifyUrl: album.external_urls.spotify,
-      source: 'spotify',
+      trackCount,
+      appleUrl: appleUrl,
+      source: 'apple',
       topArtist: isTopArtist,
     },
   })
@@ -142,50 +115,48 @@ export async function POST(request: NextRequest) {
   const excludedArtists = await getExcludedArtists()
   let totalStored = 0
   let searchStored = 0
-  let newReleasesStored = 0
+  let topStored = 0
   const errors: string[] = []
 
-  let token: string
-  try {
-    token = await getSpotifyToken()
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: msg }, { status: 500 })
-  }
-
-  // ── Phase 1: Search for new albums by genre ──
-  const currentYear = new Date().getFullYear()
-  for (const genre of SPOTIFY_GENRES) {
+  // ── Phase 1: iTunes Search for new albums by genre ──
+  const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000
+  for (const genre of ITUNES_GENRES) {
     try {
-      // Search for recent albums in this genre
-      const query = encodeURIComponent(`genre:"${genre.query}" year:${currentYear}`)
-      const data = await spotifyFetch(
-        `https://api.spotify.com/v1/search?q=${query}&type=album&market=US&limit=50`,
-        token
-      ) as { albums?: { items?: SpotifyAlbum[] } }
+      const query = encodeURIComponent(genre.query)
+      const data = await itunesFetch(
+        `https://itunes.apple.com/search?term=${query}&media=music&entity=album&limit=50&country=US`
+      ) as { results?: ITunesResult[] }
 
-      const albums = data.albums?.items || []
-      console.log(`[Music] ${genre.label}: found ${albums.length} albums via search`)
+      const results = (data.results || []).filter(r => r.collectionType === 'Album')
+      console.log(`[Music] ${genre.label}: found ${results.length} albums via iTunes search`)
 
-      // Only recent releases (last 90 days)
-      const cutoff = Date.now() - 90 * 24 * 60 * 60 * 1000
-      for (const album of albums) {
-        const artistName = album.artists.map(a => a.name).join(', ')
-        if (isExcludedArtist(artistName, excludedArtists)) continue
-        if (album.release_date && new Date(album.release_date).getTime() < cutoff) continue
+      for (const album of results) {
+        if (isExcludedArtist(album.artistName, excludedArtists)) continue
+        if (album.releaseDate && new Date(album.releaseDate).getTime() < cutoff) continue
 
         try {
-          const stored = await storeRelease(album, genre.label, true)
+          const stored = await storeRelease(
+            `apple_${album.collectionId}`,
+            album.collectionName,
+            album.artistName,
+            hiResArtwork(album.artworkUrl100),
+            album.releaseDate,
+            'album',
+            genre.label,
+            album.trackCount || null,
+            album.collectionViewUrl,
+            false
+          )
           if (stored) {
             searchStored++
             totalStored++
           }
         } catch (err) {
-          console.error(`[Music] Store album ${album.name}:`, err)
+          console.error(`[Music] Store album ${album.collectionName}:`, err)
         }
       }
 
-      await delay(100)
+      await delay(200) // be polite to iTunes API
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       console.error(`[Music] Search ${genre.label}:`, err)
@@ -193,42 +164,54 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // ── Phase 2: Browse new releases (general feed) ──
+  // ── Phase 2: Apple Music RSS top/most-played albums ──
   try {
-    const data = await spotifyFetch(
-      'https://api.spotify.com/v1/browse/new-releases?country=US&limit=50',
-      token
-    ) as { albums?: { items?: SpotifyAlbum[] } }
+    const data = await itunesFetch(
+      'https://rss.applemarketingtools.com/api/v2/us/music/most-played/100/albums.json'
+    ) as { feed?: { results?: RSSAlbum[] } }
 
-    const albums = data.albums?.items || []
-    console.log(`[Music] New releases: found ${albums.length} albums`)
+    const albums = data.feed?.results || []
+    console.log(`[Music] Apple RSS: found ${albums.length} top albums`)
 
     for (const album of albums) {
-      const artistName = album.artists.map(a => a.name).join(', ')
-      if (isExcludedArtist(artistName, excludedArtists)) continue
+      if (isExcludedArtist(album.artistName, excludedArtists)) continue
 
-      // Try to assign a genre based on our categories — default to first genre
+      const genre = guessGenre('', album.genreNames)
+      // Only include genres we care about
+      if (!['hip_hop', 'rnb_soul', 'jazz'].includes(genre)) continue
+
       try {
-        const stored = await storeRelease(album, 'hip_hop', false)
+        const stored = await storeRelease(
+          `apple_rss_${album.id}`,
+          album.name,
+          album.artistName,
+          hiResArtwork(album.artworkUrl100),
+          album.releaseDate,
+          'album',
+          genre,
+          null,
+          album.url,
+          true
+        )
         if (stored) {
-          newReleasesStored++
+          topStored++
           totalStored++
         }
       } catch (err) {
-        console.error(`[Music] Store new release ${album.name}:`, err)
+        console.error(`[Music] Store RSS album ${album.name}:`, err)
       }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
-    console.error(`[Music] New releases:`, err)
-    errors.push(`new_releases: ${msg}`)
+    console.error(`[Music] Apple RSS:`, err)
+    errors.push(`apple_rss: ${msg}`)
   }
 
   return NextResponse.json({
-    message: `Stored ${totalStored} new releases (${searchStored} from genre search, ${newReleasesStored} from new releases)`,
+    message: `Stored ${totalStored} new releases (${searchStored} from search, ${topStored} from top charts)`,
     stored: totalStored,
     searchStored,
-    newReleasesStored,
+    topStored,
     errors: errors.length > 0 ? errors : undefined,
   })
 }

@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { title, artist, genre, releaseType, coverUrl, spotifyUrl, topArtist, featured } = await request.json()
+  const { title, artist, genre, releaseType, coverUrl, appleUrl, topArtist, featured } = await request.json()
 
   if (!title || !artist) {
     return NextResponse.json({ error: 'title and artist are required' }, { status: 400 })
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       genre: genre || null,
       releaseType: releaseType || 'album',
       coverUrl: coverUrl || null,
-      spotifyUrl: spotifyUrl || null,
+      appleUrl: appleUrl || null,
       topArtist: Boolean(topArtist),
       featured: Boolean(featured),
       source: 'manual',

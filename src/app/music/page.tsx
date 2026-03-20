@@ -30,7 +30,7 @@ type ReleaseWithRating = {
   releaseDate: Date | null
   releaseType: string
   genre: string | null
-  spotifyUrl: string | null
+  appleUrl: string | null
   topArtist: boolean
   featured: boolean
   avgRating: number
@@ -75,7 +75,7 @@ async function getReleases(genre?: string): Promise<{
         releaseDate: r.releaseDate,
         releaseType: r.releaseType,
         genre: r.genre,
-        spotifyUrl: r.spotifyUrl,
+        appleUrl: r.appleUrl,
         topArtist: r.topArtist,
         featured: r.featured,
         avgRating,
@@ -113,7 +113,7 @@ function ReleaseCard({ release, size = 'normal' }: { release: ReleaseWithRating;
   return (
     <div className="group">
       <a
-        href={release.spotifyUrl || '#'}
+        href={release.appleUrl || '#'}
         target="_blank"
         rel="noopener noreferrer"
         className="block aspect-square rounded-lg overflow-hidden bg-[var(--bg-elevated)] mb-2 relative"

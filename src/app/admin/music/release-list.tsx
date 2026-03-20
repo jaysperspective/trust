@@ -164,7 +164,7 @@ export function ReleaseList({ releases }: { releases: Release[] }) {
 
         {visible.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-[var(--text-muted)]">No releases yet. Hit &quot;Fetch Music&quot; to pull from Spotify.</p>
+            <p className="text-[var(--text-muted)]">No releases yet. Hit &quot;Fetch Music&quot; to pull from Apple Music.</p>
           </div>
         )}
       </div>
