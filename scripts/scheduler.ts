@@ -47,8 +47,12 @@ const NEWS_FETCH_TIMES = [
   { hour: 21, slot: 'latenight' as const },
 ]
 
+const MUSIC_FETCH_DAYS = [3, 5] // Wednesday, Friday
+const MUSIC_FETCH_HOUR = 6 // 6 AM EST
+
 let shouldStop = false
 let lastNewsFetchDate = ''
+let lastMusicFetchDate = ''
 const fetchedSlotsToday = new Set<string>()
 
 function log(message: string) {
@@ -175,14 +179,58 @@ async function checkNewsFetch() {
   }
 }
 
+async function checkMusicFetch() {
+  const now = new Date()
+  const hourLocal = currentHourInTimezone(NEWS_TIMEZONE)
+  const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: NEWS_TIMEZONE }).format(now)
+
+  // Already fetched today
+  if (todayKey === lastMusicFetchDate) return
+
+  // Get current day of week in EST (0=Sun, 3=Wed, 5=Fri)
+  const dayFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: NEWS_TIMEZONE,
+    weekday: 'short'
+  })
+  const dayStr = dayFormatter.format(now)
+  const dayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  const dayOfWeek = dayMap[dayStr] ?? -1
+
+  if (!MUSIC_FETCH_DAYS.includes(dayOfWeek)) return
+  if (hourLocal < MUSIC_FETCH_HOUR || hourLocal > MUSIC_FETCH_HOUR) return
+
+  lastMusicFetchDate = todayKey
+  log(`Triggering music fetch (${dayStr} ${MUSIC_FETCH_HOUR}:00 EST)...`)
+
+  try {
+    const cronSecret = process.env.CRON_SECRET
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
+    const response = await fetch(`${baseUrl}/api/cron/music-releases`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-cron-secret': cronSecret || ''
+      }
+    })
+
+    const result = await response.json()
+    log(`Music fetch: ${result.message}`)
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error)
+    log(`Music fetch error: ${errMsg}`)
+  }
+}
+
 async function newsCheckLoop() {
   if (shouldStop) return
 
   try {
     await checkNewsFetch()
+    await checkMusicFetch()
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error)
-    log(`Error in news check: ${errMsg}`)
+    log(`Error in news/music check: ${errMsg}`)
   }
 
   if (!shouldStop) {
@@ -211,6 +259,7 @@ async function main() {
   log('Starting plustrust Scheduler')
   log(`Autopost: every ${INTERVAL_HOURS}h, ${POSTS_PER_CYCLE} posts/cycle`)
   log(`News digest: checking every 5min, fetching every 3h (8 slots/day)`)
+  log(`Music fetch: Wed & Fri at ${MUSIC_FETCH_HOUR}:00 EST`)
 
   process.on('SIGINT', () => {
     log('Shutting down (SIGINT)...')
