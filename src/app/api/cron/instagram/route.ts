@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyCronSecret, isAdminAuthenticated } from '@/lib/auth'
 
 const GRAPH_API_VERSION = 'v21.0'
-const GRAPH_BASE = `https://graph.instagram.com/${GRAPH_API_VERSION}`
+const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`
 
 /**
  * Fetches latest Instagram posts via the Graph API and caches them.
