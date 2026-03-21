@@ -49,10 +49,12 @@ const NEWS_FETCH_TIMES = [
 
 const MUSIC_FETCH_DAYS = [3, 5] // Wednesday, Friday
 const MUSIC_FETCH_HOUR = 6 // 6 AM EST
+const INSTAGRAM_FETCH_HOUR = 8 // 8 AM EST
 
 let shouldStop = false
 let lastNewsFetchDate = ''
 let lastMusicFetchDate = ''
+let lastInstagramFetchDate = ''
 const fetchedSlotsToday = new Set<string>()
 
 function log(message: string) {
@@ -222,12 +224,44 @@ async function checkMusicFetch() {
   }
 }
 
+async function checkInstagramFetch() {
+  const now = new Date()
+  const hourLocal = currentHourInTimezone(NEWS_TIMEZONE)
+  const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: NEWS_TIMEZONE }).format(now)
+
+  if (todayKey === lastInstagramFetchDate) return
+  if (hourLocal !== INSTAGRAM_FETCH_HOUR) return
+
+  lastInstagramFetchDate = todayKey
+  log(`Triggering Instagram fetch (${INSTAGRAM_FETCH_HOUR}:00 EST)...`)
+
+  try {
+    const cronSecret = process.env.CRON_SECRET
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+
+    const response = await fetch(`${baseUrl}/api/cron/instagram`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-cron-secret': cronSecret || ''
+      }
+    })
+
+    const result = await response.json()
+    log(`Instagram fetch: ${result.message}`)
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error)
+    log(`Instagram fetch error: ${errMsg}`)
+  }
+}
+
 async function newsCheckLoop() {
   if (shouldStop) return
 
   try {
     await checkNewsFetch()
     await checkMusicFetch()
+    await checkInstagramFetch()
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error)
     log(`Error in news/music check: ${errMsg}`)
@@ -260,6 +294,7 @@ async function main() {
   log(`Autopost: every ${INTERVAL_HOURS}h, ${POSTS_PER_CYCLE} posts/cycle`)
   log(`News digest: checking every 5min, fetching every 3h (8 slots/day)`)
   log(`Music fetch: Wed & Fri at ${MUSIC_FETCH_HOUR}:00 EST`)
+  log(`Instagram fetch: daily at ${INSTAGRAM_FETCH_HOUR}:00 EST`)
 
   process.on('SIGINT', () => {
     log('Shutting down (SIGINT)...')

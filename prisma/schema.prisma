@@ -509,3 +509,22 @@ model MusicRating {
   @@unique([releaseId, ipHash])
   @@index([releaseId])
 }
+
+// ── Instagram Posts ──────────────────────────────────────────────
+
+model InstagramPost {
+  id            String   @id @default(cuid())
+  postId        String   @unique // Instagram media ID
+  permalink     String   // Direct link to post
+  caption       String?  @db.Text
+  mediaType     String   // IMAGE, VIDEO, CAROUSEL_ALBUM
+  mediaUrl      String   // Image or video URL
+  thumbnailUrl  String?  // Video thumbnail
+  timestamp     DateTime
+  likeCount     Int?
+  commentsCount Int?
+  fetchedAt     DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([fetchedAt])
+}

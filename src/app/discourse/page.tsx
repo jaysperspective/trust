@@ -12,6 +12,17 @@ export const metadata: Metadata = {
 
 const PLUSNTRUST_CHANNEL_ID = 'UCPx8Jwbky3uQXqLmBe74r2A'
 
+async function getInstagramPosts() {
+  try {
+    return await prisma.instagramPost.findMany({
+      orderBy: { timestamp: 'desc' },
+      take: 12,
+    })
+  } catch {
+    return []
+  }
+}
+
 async function getYouTubeVideos() {
   try {
     return await prisma.youTubeVideo.findMany({
@@ -24,6 +35,21 @@ async function getYouTubeVideos() {
   } catch {
     return []
   }
+}
+
+function InstagramSkeleton() {
+  return (
+    <div className="grid grid-cols-3 gap-1 rounded-lg overflow-hidden">
+      {[1, 2, 3, 4, 5, 6].map(i => (
+        <div key={i} className="aspect-square bg-[var(--bg-elevated)] animate-pulse" />
+      ))}
+    </div>
+  )
+}
+
+async function InstagramSection() {
+  const posts = await getInstagramPosts()
+  return <InstagramFeed posts={posts} />
 }
 
 function VideoSkeleton() {
@@ -101,7 +127,9 @@ export default function FeedPage() {
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4" style={{ fontFamily: 'var(--font-heading)' }}>
             Instagram
           </h2>
-          <InstagramFeed username="plusntrust" />
+          <Suspense fallback={<InstagramSkeleton />}>
+            <InstagramSection />
+          </Suspense>
         </div>
 
         {/* YouTube Section */}
